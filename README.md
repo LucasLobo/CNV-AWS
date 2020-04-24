@@ -1,6 +1,20 @@
 # cnv-project19-20
 README file with the text description of the architecture and your selections of the system configurations (auto-scaling, load balancer, etc...)
 
+The Sudoku@Cloud system will be run within the Amazon Web Services ecosystem. The system will be organized in four main components:
+
+• Web Servers: The web servers receive web requests to perform puzzle solving, discovering missing
+elements in the grid and return the solved puzzle. In Sudoku@Cloud , there will be a varying number
+of identical web servers. Each will run on a rented AWS Elastic Compute Cloud (EC2) instance.
+• Load Balancer: The load balancer is the entry point into the Sudoku@Cloud system. It receives
+all web requests, and for each one, it selects an active web server to serve the request and forwards
+it to that server.
+• Auto-Scaler: The auto-scaler is in charge of collecting system performance metrics and, based on
+them, adjusting the number of active web servers.
+• Metrics Storage System: The metrics storage system will use one of the available data storage
+mechanisms at AWS to store web server performance metrics relating to requests. These will help
+the load balancer choose the most appropriate web server.
+
 LOAD BALANCER
 
 The load balancer is the only entry point into the system: It receives a sequence of web requests and selects one of the active web server cluster nodes to handle each of the requests. 
