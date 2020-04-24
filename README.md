@@ -28,12 +28,8 @@ The load balancer we created using Amazon AWS is of the classic type, with us-ea
 Auto-Scaler
 
 The auto-scaling component adaptively decides how many web server nodes should be active at any given moment. 
-For the checkpoint,... 
+For the checkpoint we haven't yet finished implementing our own auto scaler but we have implemented until a certain degree. Our idea is that as we gather the statics of each of the instances that are running at check its Average CPU usage of the 3 most recent datapoints. If there isn't enough datapoints we just gather the last one. If the 3 datapoints have a CPU usage of CPU_MAX_VALUE (for example, 80%) then another instance is created. The same happens if we don't have enough datapoints. [IMPLEMENTED - not tested]
+The same analysis happens to decrement the number of instances but instead of comparing the Average CPU usage with CPU_MAX_VALUE, it compares with CPU_MIN_VALUE (for example 10%). The same logic applies, if the most recent 3 datapoints have a CPU usage of < CPU_MIN_VALUE then an instance gets terminated. [NOT IMPLEMENTED]
 
-Although the algorithm for load balancing is not fully implemented at this stage, we have already some logic developed...
 
-...
-(our implementation)
-...
-
-Regarding the auto scaling group we created using Amazon AWS, we started by creating a launch configuration, using an an AMI provided by AWS, Amazon Linux 2 AMI (HVM). We used the default instance type and enabled CloudWatch detailed monitoring. We also used default storage device settings with size (GiB) 8 of type General Purpose (SSD). The selected security group for the auto-scaler has 3 inbound rules of type HTTP (with protocol TCP, port range 80	and source 0.0.0.0/0), Custom TCP (with protocol TCP, port range 8000	and source 0.0.0.0/0) and SSH (with protocol TCP, port range 22	and source 0.0.0.0/0).
+Regarding the auto scaling group we created using Amazon AWS, we started by creating a launch configuration, using an an AMI provided by AWS, Amazon Linux 2 AMI (HVM). We used the default instance type and enabled CloudWatch detailed monitoring. We also used default storage device settings with size (GiB) 8 of type General Purpose (SSD). The selected security group for the auto-scaler has 3 inbound rules of type HTTP (with protocol TCP, port range 80	and source 0.0.0.0/0), Custom TCP (with protocol TCP, port range 8000	and source 0.0.0.0/0) and SSH (with protocol TCP, port range 22	and source 0.0.0.0/0). 
