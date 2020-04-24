@@ -19,8 +19,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
+import java.lang.StringBuilder;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class WebServer {
+
+    public static boolean debug = false;
 
 	public static void main(final String[] args) throws Exception {
 
@@ -33,9 +38,13 @@ public class WebServer {
 		// be aware! infinite pool of threads!
 		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
-		ICount.instanciateVector(4);
 
 		System.out.println(server.getAddress().toString());
+		
+		ICount.instanciateVector(4);
+		if(args.length != 0)
+            if(args[0].equals("debug"))
+                debug = true;
 	}
 
 	public static String parseRequestBody(InputStream is) throws IOException {
@@ -57,6 +66,13 @@ public class WebServer {
         return buf.toString();
     }
 	static class MyHandler implements HttpHandler {
+        int basicBlocks = 0;
+        
+        String[] requestInfo = new String[6];
+        //Solver -> un -> n -> n -> name -> board
+        
+        
+	
 		@Override
 		public void handle(final HttpExchange t) throws IOException {
 
@@ -84,8 +100,12 @@ public class WebServer {
 			int i = 0;
 			for(String arg: newArgs) {
 				args[i] = arg;
+				if((i % 2) != 0){
+                    requestInfo[i/2] = arg;
+                    }
 				i++;
 			}
+			
 			// Get user-provided flags.
 			final SolverArgumentParser ap = new SolverArgumentParser(args);
 
@@ -93,13 +113,16 @@ public class WebServer {
 			final Solver s = SolverFactory.getInstance().makeSolver(ap);
 			//Solve sudoku puzzle
 			
+			
+			ICount.resetVar();
+			
 			JSONArray solution = s.solveSudoku();
 
 			System.out.println("Thread id = " + Thread.currentThread().getId());
 			//ICount.printICount("");
-			System.out.println("Number of basic blocks were: " + ICount.getBCount());
-			ICount.resetVar();
-
+			basicBlocks = ICount.getBCount();
+			System.out.println("Number of basic blocks were: " + basicBlocks);
+            
 			// Send response to browser.
 			final Headers hdrs = t.getResponseHeaders();
 
@@ -127,6 +150,22 @@ public class WebServer {
 			os.close();
 
 			System.out.println("> Sent response to " + t.getRemoteAddress().toString());
+			
+			if(debug)
+                printToFile();
+		}
+		
+		
+		private void printToFile(){
+            StringBuilder filename = new StringBuilder();
+            filename.append("~/metrics/logs/").append(requestInfo[0]).append("-").append(requestInfo[2]).append("x").append(requestInfo[3]).append("-").append(requestInfo[1]).append("-").append(new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SS").format(new Date()));
+            try(PrintWriter writer = new PrintWriter(new File(filename.toString() + ".txt"))){
+                writer.write(basicBlocks);
+                writer.flush();
+                System.out.println("Wrote to file.");
+            } catch(FileNotFoundException e){
+                System.out.println(e.getMessage());
+            }
 		}
 	}
 }
