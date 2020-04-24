@@ -1,0 +1,759 @@
+dynamic : BFS : SUDOKU_PUZZLE_9x9_101
+Dynamic information summary:
+Number of methods:      415
+Number of basic blocks: 33525474
+Number of instructions: 78232814
+Average number of instructions per basic block: 2.333533419989826
+Average number of instructions per method:      188512.8048192771
+Average number of basic blocks per method:      80784.27469879518
+
+dynamic : BFS : SUDOKU_PUZZLE_9x9_102
+Dynamic information summary:
+Number of methods:      434
+Number of basic blocks: 39700603
+Number of instructions: 92641838
+Average number of instructions per basic block: 2.333512113153546
+Average number of instructions per method:      213460.45622119817
+Average number of basic blocks per method:      91476.04377880185
+
+dynamic : BFS : SUDOKU_PUZZLE_9x9_103
+Dynamic information summary:
+Number of methods:      600
+Number of basic blocks: 79399716
+Number of instructions: 185278885
+Average number of instructions per basic block: 2.3334955631327445
+Average number of instructions per method:      308798.14166666666
+Average number of basic blocks per method:      132332.86
+
+dynamic : BFS : SUDOKU_PUZZLE_9x9_104
+Dynamic information summary:
+Number of methods:      428
+Number of basic blocks: 37936212
+Number of instructions: 88524683
+Average number of instructions per basic block: 2.3335140313956493
+Average number of instructions per method:      206833.3714953271
+Average number of basic blocks per method:      88636.00934579439
+
+dynamic : BFS : SUDOKU_PUZZLE_9x9_105
+Dynamic information summary:
+Number of methods:      411
+Number of basic blocks: 33525283
+Number of instructions: 78232025
+Average number of instructions per basic block: 2.333523180102611
+Average number of instructions per method:      190345.5596107056
+Average number of basic blocks per method:      81570.03163017031
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_01
+Dynamic information summary:
+Number of methods:      1346
+Number of basic blocks: 183503308
+Number of instructions: 428207821
+Average number of instructions per basic block: 2.333515540766164
+Average number of instructions per method:      318133.59658246656
+Average number of basic blocks per method:      136332.32392273404
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_02
+Dynamic information summary:
+Number of methods:      1294
+Number of basic blocks: 164978384
+Number of instructions: 384982744
+Average number of instructions per basic block: 2.3335344586718705
+Average number of instructions per method:      297513.71251931996
+Average number of basic blocks per method:      127494.88717156104
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_03
+Dynamic information summary:
+Number of methods:      1204
+Number of basic blocks: 142040683
+Number of instructions: 331457107
+Average number of instructions per basic block: 2.333536420688712
+Average number of instructions per method:      275296.60049833887
+Average number of basic blocks per method:      117973.9892026578
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_04
+Dynamic information summary:
+Number of methods:      1127
+Number of basic blocks: 119986213
+Number of instructions: 279994498
+Average number of instructions per basic block: 2.3335555894242614
+Average number of instructions per method:      248442.32298136645
+Average number of basic blocks per method:      106465.14019520851
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_05
+Dynamic information summary:
+Number of methods:      2080
+Number of basic blocks: 176451875
+Number of instructions: 411761750
+Average number of instructions per basic block: 2.333564038353234
+Average number of instructions per method:      197962.3798076923
+Average number of basic blocks per method:      84832.63221153847
+
+dynamic : BFS : SUDOKU_PUZZLE_16x16_06
+Dynamic information summary:
+Number of methods:      3597
+Number of basic blocks: 574343031
+Number of instructions: 1340267644
+Average number of instructions per basic block: 2.333566477974728
+Average number of instructions per method:      372607.07367250486
+Average number of basic blocks per method:      159672.79149291076
+
+dynamic : DLX : SUDOKU_PUZZLE_9x9_101
+Dynamic information summary:
+Number of methods:      3366
+Number of basic blocks: 222523414
+Number of instructions: 524629278
+Average number of instructions per basic block: 2.3576362979942416
+Average number of instructions per method:      155861.3422459893
+Average number of basic blocks per method:      66109.15448603684
+
+dynamic : DLX : SUDOKU_PUZZLE_9x9_102
+Dynamic information summary:
+Number of methods:      3366
+Number of basic blocks: 222523414
+Number of instructions: 524629278
+Average number of instructions per basic block: 2.3576362979942416
+Average number of instructions per method:      155861.3422459893
+Average number of basic blocks per method:      66109.15448603684
+
+dynamic : DLX : SUDOKU_PUZZLE_9x9_103
+Dynamic information summary:
+Number of methods:      3386
+Number of basic blocks: 226033597
+Number of instructions: 532692013
+Average number of instructions per basic block: 2.3566939608539696
+Average number of instructions per method:      157321.91760189013
+Average number of basic blocks per method:      66755.34465445954
+
+dynamic : DLX : SUDOKU_PUZZLE_9x9_104
+Dynamic information summary:
+Number of methods:      3366
+Number of basic blocks: 222523414
+Number of instructions: 524629278
+Average number of instructions per basic block: 2.3576362979942416
+Average number of instructions per method:      155861.3422459893
+Average number of basic blocks per method:      66109.15448603684
+
+dynamic : DLX : SUDOKU_PUZZLE_9x9_105
+Dynamic information summary:
+Number of methods:      3366
+Number of basic blocks: 222523414
+Number of instructions: 524629278
+Average number of instructions per basic block: 2.3576362979942416
+Average number of instructions per method:      155861.3422459893
+Average number of basic blocks per method:      66109.15448603684
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_01
+Dynamic information summary:
+Number of methods:      12228
+Number of basic blocks: 712397901
+Number of instructions: 1757193611
+Average number of instructions per basic block: 2.46659010158987
+Average number of instructions per method:      143702.45428524696
+Average number of basic blocks per method:      58259.56010794897
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_02
+Dynamic information summary:
+Number of methods:      12224
+Number of basic blocks: 712397760
+Number of instructions: 1757192904
+Average number of instructions per basic block: 2.466589597362013
+Average number of instructions per method:      143749.4195026178
+Average number of basic blocks per method:      58278.61256544503
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_03
+Dynamic information summary:
+Number of methods:      12208
+Number of basic blocks: 712397460
+Number of instructions: 1757190879
+Average number of instructions per basic block: 2.4665877935611955
+Average number of instructions per method:      143937.65391546526
+Average number of basic blocks per method:      58354.968872870246
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_04
+Dynamic information summary:
+Number of methods:      12220
+Number of basic blocks: 712397686
+Number of instructions: 1757192400
+Average number of instructions per basic block: 2.4665891461079226
+Average number of instructions per method:      143796.43207855974
+Average number of basic blocks per method:      58297.6829787234
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_05
+Dynamic information summary:
+Number of methods:      27095
+Number of basic blocks: 205799833
+Number of instructions: 1355449481
+Average number of instructions per basic block: 6.5862516078912465
+Average number of instructions per method:      50025.815870086735
+Average number of basic blocks per method:      7595.491160730762
+
+dynamic : DLX : SUDOKU_PUZZLE_16x16_06
+Dynamic information summary:
+Number of methods:      35250
+Number of basic blocks: 1861448051
+Number of instructions: 5226171936
+Average number of instructions per basic block: 2.807584091961318
+Average number of instructions per method:      148260.19676595746
+Average number of basic blocks per method:      52807.03690780142
+
+dynamic : CP : SUDOKU_PUZZLE_9x9_101
+Dynamic information summary:
+Number of methods:      430
+Number of basic blocks: 33524945
+Number of instructions: 78233134
+Average number of instructions per basic block: 2.3335797866335053
+Average number of instructions per method:      181937.52093023257
+Average number of basic blocks per method:      77964.98837209302
+
+dynamic : CP : SUDOKU_PUZZLE_9x9_102
+Dynamic information summary:
+Number of methods:      444
+Number of basic blocks: 39700163
+Number of instructions: 92642613
+Average number of instructions per basic block: 2.333557496980554
+Average number of instructions per method:      208654.5337837838
+Average number of basic blocks per method:      89414.78153153154
+
+dynamic : CP : SUDOKU_PUZZLE_9x9_103
+Dynamic information summary:
+Number of methods:      521
+Number of basic blocks: 71458954
+Number of instructions: 166751704
+Average number of instructions per basic block: 2.333531274471216
+Average number of instructions per method:      320060.8522072937
+Average number of basic blocks per method:      137157.30134357006
+
+dynamic : CP : SUDOKU_PUZZLE_9x9_104
+Dynamic information summary:
+Number of methods:      440
+Number of basic blocks: 37935732
+Number of instructions: 88525236
+Average number of instructions per basic block: 2.333558134584038
+Average number of instructions per method:      201193.71818181817
+Average number of basic blocks per method:      86217.57272727272
+
+dynamic : CP : SUDOKU_PUZZLE_9x9_105
+Dynamic information summary:
+Number of methods:      430
+Number of basic blocks: 33524901
+Number of instructions: 78232933
+Average number of instructions per basic block: 2.333576853813826
+Average number of instructions per method:      181937.0534883721
+Average number of basic blocks per method:      77964.88604651163
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_01
+Dynamic information summary:
+Number of methods:      1325
+Number of basic blocks: 183501344
+Number of instructions: 428210608
+Average number of instructions per basic block: 2.3335557040933717
+Average number of instructions per method:      323177.81735849055
+Average number of basic blocks per method:      138491.58037735848
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_02
+Dynamic information summary:
+Number of methods:      1250
+Number of basic blocks: 150860655
+Number of instructions: 352045046
+Average number of instructions per basic block: 2.3335776051085024
+Average number of instructions per method:      281636.0368
+Average number of basic blocks per method:      120688.524
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_03
+Dynamic information summary:
+Number of methods:      1229
+Number of basic blocks: 142038471
+Number of instructions: 331457840
+Average number of instructions per basic block: 2.3335779219983297
+Average number of instructions per method:      269697.1847030106
+Average number of basic blocks per method:      115572.39300244101
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_04
+Dynamic information summary:
+Number of methods:      1179
+Number of basic blocks: 119984069
+Number of instructions: 279995155
+Average number of instructions per basic block: 2.333602763546884
+Average number of instructions per method:      237485.28837998305
+Average number of basic blocks per method:      101767.65818490247
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_05
+Dynamic information summary:
+Number of methods:      3427
+Number of basic blocks: 683717746
+Number of instructions: 1595490037
+Average number of instructions per basic block: 2.333550717871816
+Average number of instructions per method:      465564.6445871024
+Average number of basic blocks per method:      199509.11759556463
+
+dynamic : CP : SUDOKU_PUZZLE_16x16_06
+Dynamic information summary:
+Number of methods:      3063
+Number of basic blocks: 441999188
+Number of instructions: 1031452740
+Average number of instructions per basic block: 2.3336077712432357
+Average number of instructions per method:      336745.9157688541
+Average number of basic blocks per method:      144302.70584394384
+
+load_store : BFS : SUDOKU_PUZZLE_9x9_101
+Load Store Summary:
+Field load:    1046
+Field store:   20
+Regular load:  11183039
+Regular store: 11173532
+
+load_store : BFS : SUDOKU_PUZZLE_9x9_102
+Load Store Summary:
+Field load:    1064
+Field store:   20
+Regular load:  13242025
+Regular store: 13231761
+
+load_store : BFS : SUDOKU_PUZZLE_9x9_103
+Load Store Summary:
+Field load:    1679
+Field store:   20
+Regular load:  26482151
+Regular store: 26463360
+
+load_store : BFS : SUDOKU_PUZZLE_9x9_104
+Load Store Summary:
+Field load:    1037
+Field store:   20
+Regular load:  12653588
+Regular store: 12643695
+
+load_store : BFS : SUDOKU_PUZZLE_9x9_105
+Load Store Summary:
+Field load:    989
+Field store:   20
+Regular load:  11182624
+Regular store: 11173528
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_01
+Load Store Summary:
+Field load:    4686
+Field store:   20
+Regular load:  61207869
+Regular store: 61159527
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_02
+Load Store Summary:
+Field load:    4773
+Field store:   20
+Regular load:  55031958
+Regular store: 54984855
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_03
+Load Store Summary:
+Field load:    4246
+Field store:   20
+Regular load:  47380931
+Regular store: 47339965
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_04
+Load Store Summary:
+Field load:    4051
+Field store:   20
+Regular load:  40026458
+Regular store: 39989138
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_05
+Load Store Summary:
+Field load:    6725
+Field store:   20
+Regular load:  58865437
+Regular store: 58807530
+
+load_store : BFS : SUDOKU_PUZZLE_16x16_06
+Load Store Summary:
+Field load:    19154
+Field store:   20
+Regular load:  191602219
+Regular store: 191417063
+
+load_store : DLX : SUDOKU_PUZZLE_9x9_101
+Load Store Summary:
+Field load:    319433
+Field store:   10235
+Regular load:  77730542
+Regular store: 74438002
+
+load_store : DLX : SUDOKU_PUZZLE_9x9_102
+Load Store Summary:
+Field load:    319433
+Field store:   10235
+Regular load:  77730542
+Regular store: 74438002
+
+load_store : DLX : SUDOKU_PUZZLE_9x9_103
+Load Store Summary:
+Field load:    319795
+Field store:   10423
+Regular load:  78829714
+Regular store: 75593748
+
+load_store : DLX : SUDOKU_PUZZLE_9x9_104
+Load Store Summary:
+Field load:    319433
+Field store:   10235
+Regular load:  77730542
+Regular store: 74438002
+
+load_store : DLX : SUDOKU_PUZZLE_9x9_105
+Load Store Summary:
+Field load:    319433
+Field store:   10235
+Regular load:  77730542
+Regular store: 74438002
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_01
+Load Store Summary:
+Field load:    4909445
+Field store:   32661
+Regular load:  299752986
+Regular store: 242320002
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_02
+Load Store Summary:
+Field load:    4909349
+Field store:   32614
+Regular load:  299752735
+Regular store: 242319901
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_03
+Load Store Summary:
+Field load:    4908987
+Field store:   32426
+Regular load:  299751995
+Regular store: 242319750
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_04
+Load Store Summary:
+Field load:    4909257
+Field store:   32567
+Regular load:  299752551
+Regular store: 242319865
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_05
+Load Store Summary:
+Field load:    39145266
+Field store:   57533
+Regular load:  643581203
+Regular store: 114246180
+
+load_store : DLX : SUDOKU_PUZZLE_16x16_06
+Load Store Summary:
+Field load:    43124711
+Field store:   79155
+Regular load:  1199082112
+Regular store: 666364039
+
+load_store : CP : SUDOKU_PUZZLE_9x9_101
+Load Store Summary:
+Field load:    1386
+Field store:   20
+Regular load:  11182457
+Regular store: 11173643
+
+load_store : CP : SUDOKU_PUZZLE_9x9_102
+Load Store Summary:
+Field load:    1484
+Field store:   20
+Regular load:  13241647
+Regular store: 13231874
+
+load_store : CP : SUDOKU_PUZZLE_9x9_103
+Load Store Summary:
+Field load:    2313
+Field store:   20
+Regular load:  23832926
+Regular store: 23817131
+
+load_store : CP : SUDOKU_PUZZLE_9x9_104
+Load Store Summary:
+Field load:    1402
+Field store:   20
+Regular load:  12653117
+Regular store: 12643807
+
+load_store : CP : SUDOKU_PUZZLE_9x9_105
+Load Store Summary:
+Field load:    1358
+Field store:   20
+Regular load:  11182358
+Regular store: 11173642
+
+load_store : CP : SUDOKU_PUZZLE_16x16_01
+Load Store Summary:
+Field load:    7287
+Field store:   20
+Regular load:  61205714
+Regular store: 61159922
+
+load_store : CP : SUDOKU_PUZZLE_16x16_02
+Load Store Summary:
+Field load:    6606
+Field store:   20
+Regular load:  50320843
+Regular store: 50280697
+
+load_store : CP : SUDOKU_PUZZLE_16x16_03
+Load Store Summary:
+Field load:    6175
+Field store:   20
+Regular load:  47378122
+Regular store: 47340352
+
+load_store : CP : SUDOKU_PUZZLE_16x16_04
+Load Store Summary:
+Field load:    5785
+Field store:   20
+Regular load:  40023736
+Regular store: 39989531
+
+load_store : CP : SUDOKU_PUZZLE_16x16_05
+Load Store Summary:
+Field load:    29351
+Field store:   20
+Regular load:  228052272
+Regular store: 227877592
+
+load_store : CP : SUDOKU_PUZZLE_16x16_06
+Load Store Summary:
+Field load:    23382
+Field store:   20
+Regular load:  147443531
+Regular store: 147312962
+
+alloc : BFS : SUDOKU_PUZZLE_9x9_101
+Allocations summary:
+new:            35
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_9x9_102
+Allocations summary:
+new:            35
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_9x9_103
+Allocations summary:
+new:            35
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_9x9_104
+Allocations summary:
+new:            35
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_9x9_105
+Allocations summary:
+new:            35
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_01
+Allocations summary:
+new:            42
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_02
+Allocations summary:
+new:            42
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_03
+Allocations summary:
+new:            42
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_04
+Allocations summary:
+new:            42
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_05
+Allocations summary:
+new:            51
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : BFS : SUDOKU_PUZZLE_16x16_06
+Allocations summary:
+new:            51
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : DLX : SUDOKU_PUZZLE_9x9_101
+Allocations summary:
+new:            1011
+newarray:       74
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_9x9_102
+Allocations summary:
+new:            1011
+newarray:       74
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_9x9_103
+Allocations summary:
+new:            1027
+newarray:       70
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_9x9_104
+Allocations summary:
+new:            1011
+newarray:       74
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_9x9_105
+Allocations summary:
+new:            1011
+newarray:       74
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_01
+Allocations summary:
+new:            3150
+newarray:       239
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_02
+Allocations summary:
+new:            3146
+newarray:       239
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_03
+Allocations summary:
+new:            3130
+newarray:       239
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_04
+Allocations summary:
+new:            3142
+newarray:       239
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_05
+Allocations summary:
+new:            7555
+newarray:       589
+anewarray:      3
+multianewarray: 2
+
+alloc : DLX : SUDOKU_PUZZLE_16x16_06
+Allocations summary:
+new:            7587
+newarray:       590
+anewarray:      3
+multianewarray: 2
+
+alloc : CP : SUDOKU_PUZZLE_9x9_101
+Allocations summary:
+new:            73
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_9x9_102
+Allocations summary:
+new:            80
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_9x9_103
+Allocations summary:
+new:            116
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_9x9_104
+Allocations summary:
+new:            78
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_9x9_105
+Allocations summary:
+new:            73
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_01
+Allocations summary:
+new:            250
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_02
+Allocations summary:
+new:            213
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_03
+Allocations summary:
+new:            203
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_04
+Allocations summary:
+new:            178
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_05
+Allocations summary:
+new:            826
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
+alloc : CP : SUDOKU_PUZZLE_16x16_06
+Allocations summary:
+new:            552
+newarray:       0
+anewarray:      2
+multianewarray: 1
+
