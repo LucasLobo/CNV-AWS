@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="cnv-sudoku">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/cnv-sudoku.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
