@@ -6,7 +6,7 @@ If in an EC2 instance in AWS, in the ec2-user/home directory:
 
 3) Point your Java classpath to the AWS SDK and to the third party libs included:
   
-  *export CLASSPATH=$CLASSPATH:path-to-sdk/lib/aws-java-sdk-1.XX.YYY.jar:path-to-sdk/third-party/lib/*:.*
+        export CLASSPATH=$CLASSPATH:path-to-sdk/lib/aws-java-sdk-1.XX.YYY.jar:path-to-sdk/third-party/lib/*:.
 
   or update if newer version is returned.
 
@@ -14,11 +14,11 @@ If in an EC2 instance in AWS, in the ec2-user/home directory:
 
 5) Create a file called "credentials" in the .aws folder containing:
 
-*[default]*
+        [default]
 
-*aws_access_key_id=<your-aws-access-key-id>*
+        aws_access_key_id=<your-aws-access-key-id>
 
-*aws_secret_access_key=<your-aws-secret-access-key>*
+        aws_secret_access_key=<your-aws-secret-access-key>
   
 Take note: the file must follow this exact syntax.
 
