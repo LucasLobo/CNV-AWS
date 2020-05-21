@@ -8,6 +8,7 @@ needs to be updated accordingly.
 2. Go to cnv-project19-20/codebase/SolverInstance
 3. Run 'source BIT/java-config-rnl-vm.sh'
 4. Run 'source BIT/config-bit.sh'
-5. A) To run without WebServer run 'source BIT/compile-local.sh'
-5. B) To run with WebServer run 'source BIT/compile.sh'
+5. Compile and instrument code
+  1. To run without WebServer run 'source BIT/compile-local.sh'
+  2. To run with WebServer run 'source BIT/compile.sh'
 6. Execute whatever was chosen in 5
