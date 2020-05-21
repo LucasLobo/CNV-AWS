@@ -1,1 +1,1 @@
-export CLASSPATH="$CLASSPATH:/tmp/cnv/BIT:/tmp/cnv/BIT/samples:./"
+export CLASSPATH="$CLASSPATH:/home/test/cnv-project19-20/codebase/SolverInstance/BIT/:/home/test/cnv-project19-20/codebase/SolverInstance/instrumented/:/home/test/cnv-project19-20/codebase/SolverInstance/project/:/SolverInstance/BIT/:/SolverInstance/instrumented/:/SolverInstance/project/"
