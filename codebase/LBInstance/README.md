@@ -1,6 +1,6 @@
 # LOAD BALANCER INSTANCE
 
-In an EC2 instance, assuming a directory structured like this:
+In an EC2 instance, we will have a directory structured like this:
 
 ```
 ec2-user
@@ -38,7 +38,7 @@ In the ec2-user/home directory:
 Take note: the file must follow this exact syntax.
 
 ## To run the Web Server
-In the ec2-user/home directory:
+Assuming project/ is present, the ec2-user/home directory:
 1) Compile WebServer.java:
           
         javac project/pt/ulisboa/tecnico/cnv/server/WebServer.java 
