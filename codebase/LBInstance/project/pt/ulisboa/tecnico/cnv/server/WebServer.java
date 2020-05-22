@@ -65,7 +65,7 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 public class WebServer {
 
 	static AmazonDynamoDB dynamoDB;
-    static AmazonEC2      ec2;
+	static AmazonEC2      ec2;
 
 	public static void main(final String[] args) throws Exception {
 
@@ -73,10 +73,10 @@ public class WebServer {
 
 		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
-        createMSS();
+		createMSS();
 
-        // TODO
-        // Create a thread that will be receiving information from solver instances on their progress
+		// TODO
+		// Create a thread that will be receiving information from solver instances on their progress
 
 		server.createContext("/sudoku", new MyHandler());
 
@@ -88,124 +88,123 @@ public class WebServer {
 	}
 
 	private static Map<String, AttributeValue> newItem(int request_id, String strategy, int size, int un, int cost) {
-        Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-        item.put("request_id", new AttributeValue().withN(Integer.toString(request_id)));
-        item.put("strategy", new AttributeValue(strategy));
-        item.put("size", new AttributeValue().withN(Integer.toString(size)));
-		item.put("un", new AttributeValue().withN(Integer.toString(un)));
-        item.put("cost", new AttributeValue().withN(Integer.toString(cost)));
 
-        return item;
-    }
+		Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+		item.put("request_id", new AttributeValue().withN(Integer.toString(request_id)));
+		item.put("strategy", new AttributeValue(strategy));
+		item.put("size", new AttributeValue().withN(Integer.toString(size)));
+			item.put("un", new AttributeValue().withN(Integer.toString(un)));
+		item.put("cost", new AttributeValue().withN(Integer.toString(cost)));
 
-    private static void createMSS() {
-        
-        ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
-        try {
-            credentialsProvider.getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (~/.aws/credentials), and is in valid format.",
-                    e);
-        }
-        dynamoDB = AmazonDynamoDBClientBuilder.standard()
-            .withCredentials(credentialsProvider)
-            .withRegion("us-east-1")
-            .build();
-		
+		return item;
+	}
+
+    	private static void createMSS() {
+
+		ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
 		try {
-            String tableName = "incoming-requests-table";
+		    credentialsProvider.getCredentials();
+		} catch (Exception e) {
+		    throw new AmazonClientException(
+			    "Cannot load the credentials from the credential profiles file. " +
+			    "Please make sure that your credentials file is at the correct " +
+			    "location (~/.aws/credentials), and is in valid format.",
+			    e);
+		}
+		dynamoDB = AmazonDynamoDBClientBuilder.standard()
+		    .withCredentials(credentialsProvider)
+		    .withRegion("us-east-1")
+		    .build();
 
-            // Create a table with a primary hash key named 'name', which holds a string
-            CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
-                .withKeySchema(new KeySchemaElement().withAttributeName("request_id").withKeyType(KeyType.HASH))
-                .withAttributeDefinitions(new AttributeDefinition().withAttributeName("request_id").withAttributeType(ScalarAttributeType.N))
-                .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
+		try {
+		    String tableName = "incoming-requests-table";
 
-            // Create table if it does not exist yet
-            TableUtils.createTableIfNotExists(dynamoDB, createTableRequest);
-            // wait for the table to move into ACTIVE state
-            try {
-                TableUtils.waitUntilActive(dynamoDB, tableName);
-            } catch(InterruptedException e) {
-                System.out.println("Caught an InterruptedException");
-                System.out.println("Error Message: " + e.getMessage());
-            }
+		    // Create a table with a primary hash key named 'name', which holds a string
+		    CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
+			.withKeySchema(new KeySchemaElement().withAttributeName("request_id").withKeyType(KeyType.HASH))
+			.withAttributeDefinitions(new AttributeDefinition().withAttributeName("request_id").withAttributeType(ScalarAttributeType.N))
+			.withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
 
-        } catch (AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means your request made it "
-                    + "to AWS, but was rejected with an error response for some reason.");
-            System.out.println("Error Message:    " + ase.getMessage());
-            System.out.println("HTTP Status Code: " + ase.getStatusCode());
-            System.out.println("AWS Error Code:   " + ase.getErrorCode());
-            System.out.println("Error Type:       " + ase.getErrorType());
-            System.out.println("Request ID:       " + ase.getRequestId());
-        } catch (AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with AWS, "
-                    + "such as not being able to access the network.");
-            System.out.println("Error Message: " + ace.getMessage());
-        }
-    }
+		    // Create table if it does not exist yet
+		    TableUtils.createTableIfNotExists(dynamoDB, createTableRequest);
+		    // wait for the table to move into ACTIVE state
+		    try {
+			TableUtils.waitUntilActive(dynamoDB, tableName);
+		    } catch(InterruptedException e) {
+			System.out.println("Caught an InterruptedException");
+			System.out.println("Error Message: " + e.getMessage());
+		    }
 
-    private static void init() {
-        AWSCredentials credentials = null;
-        try {
-            credentials = new ProfileCredentialsProvider().getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (~/.aws/credentials), and is in valid format.",
-                    e);
-        }
-        ec2 = AmazonEC2ClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
-    }
+		    } catch (AmazonServiceException ase) {
+			    System.out.println("Caught an AmazonServiceException, which means your request made it "
+				    + "to AWS, but was rejected with an error response for some reason.");
+			    System.out.println("Error Message:    " + ase.getMessage());
+			    System.out.println("HTTP Status Code: " + ase.getStatusCode());
+			    System.out.println("AWS Error Code:   " + ase.getErrorCode());
+			    System.out.println("Error Type:       " + ase.getErrorType());
+			    System.out.println("Request ID:       " + ase.getRequestId());
+		    } catch (AmazonClientException ace) {
+			    System.out.println("Caught an AmazonClientException, which means the client encountered "
+				    + "a serious internal problem while trying to communicate with AWS, "
+				    + "such as not being able to access the network.");
+			    System.out.println("Error Message: " + ace.getMessage());
+		}
+	}
 
-    public static String parseRequestBody(InputStream is) throws IOException {
-        InputStreamReader isr =  new InputStreamReader(is,"utf-8");
-        BufferedReader br = new BufferedReader(isr);
+    	private static void init() {
+		AWSCredentials credentials = null;
+		try {
+		    credentials = new ProfileCredentialsProvider().getCredentials();
+		} catch (Exception e) {
+		    throw new AmazonClientException(
+			    "Cannot load the credentials from the credential profiles file. " +
+			    "Please make sure that your credentials file is at the correct " +
+			    "location (~/.aws/credentials), and is in valid format.",
+			    e);
+		}
+		ec2 = AmazonEC2ClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
+	}
 
-        // From now on, the right way of moving from bytes to utf-8 characters:
+    	public static String parseRequestBody(InputStream is) throws IOException {
+		InputStreamReader isr =  new InputStreamReader(is,"utf-8");
+		BufferedReader br = new BufferedReader(isr);
 
-        int b;
-        StringBuilder buf = new StringBuilder(512);
-        while ((b = br.read()) != -1) {
-            buf.append((char) b);
+		// From now on, the right way of moving from bytes to utf-8 characters:
 
-        }
+		int b;
+		StringBuilder buf = new StringBuilder(512);
+		while ((b = br.read()) != -1) {
+		    buf.append((char) b);
 
-        br.close();
-        isr.close();
+		}
 
-        return buf.toString();
-    }
+		br.close();
+		isr.close();
 
-
+		return buf.toString();
+    	}
 
 	static class MyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            // Get the query.
-			final String query = t.getRequestURI().getQuery();
-			System.out.println("> Query:\t" + query);
+            	// Get the query.
+		final String query = t.getRequestURI().getQuery();
+		System.out.println("> Query:\t" + query);
 
-			// Break it down into String[].
-			final String[] params = query.split("&");
+		// Break it down into String[].
+		final String[] params = query.split("&");
 
-			// Store as if it was a direct call to SolverMain.
-			final ArrayList<String> newArgs = new ArrayList<>();
-			for (final String p : params) {
-				final String[] splitParam = p.split("=");
-				newArgs.add("-" + splitParam[0]);
-				newArgs.add(splitParam[1]);
-			}
-			newArgs.add("-b");
-			newArgs.add(parseRequestBody(t.getRequestBody()));
+		// Store as if it was a direct call to SolverMain.
+		final ArrayList<String> newArgs = new ArrayList<>();
+		for (final String p : params) {
+			final String[] splitParam = p.split("=");
+			newArgs.add("-" + splitParam[0]);
+			newArgs.add(splitParam[1]);
+		}
+		newArgs.add("-b");
+		newArgs.add(parseRequestBody(t.getRequestBody()));
 
-			newArgs.add("-d");
+		newArgs.add("-d");
 
             // TODO
             // Estimate request cost 
