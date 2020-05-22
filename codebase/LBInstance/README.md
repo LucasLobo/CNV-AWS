@@ -19,6 +19,8 @@ If in an EC2 instance in AWS, in the ec2-user/home directory:
         aws_access_key_id=<your-aws-access-key-id>
 
         aws_secret_access_key=<your-aws-secret-access-key>
+        
+        aws_session_token=<your-aws_session_token>
   
 Take note: the file must follow this exact syntax.
 
