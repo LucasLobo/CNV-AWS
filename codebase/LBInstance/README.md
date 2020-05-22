@@ -24,3 +24,20 @@ If in an EC2 instance in AWS, in the ec2-user/home directory:
   
 Take note: the file must follow this exact syntax.
 
+## To run the Web Server
+In the ec2-user/home directory:
+1) Compile WebServer.java:
+          
+        javac project/pt/ulisboa/tecnico/cnv/server/WebServer.java 
+        
+2) Go to project/ and run the Web Server from there:
+    
+        cd project
+        
+        java pt/ulisboa/tecnico/cnv/server/WebServer
+        
+        
+
+
+
+
