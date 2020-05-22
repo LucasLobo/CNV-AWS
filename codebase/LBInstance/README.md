@@ -1,5 +1,18 @@
 # LOAD BALANCER INSTANCE
-If in an EC2 instance in AWS, in the ec2-user/home directory:
+
+In an EC2 instance, assuming a directory structured like this:
+
+```
+ec2-user
+|
+home
+├── aws-java-sdk-1.XX.XXX
+│   └── ...
+└── project
+    └── ...
+```
+
+In the ec2-user/home directory:
 1) Download the AWS Java SDK from http://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip  and unzip it (wget recommended).
 
 2) Setup paths to Java version 7.
@@ -35,6 +48,7 @@ In the ec2-user/home directory:
         cd project
         
         java pt/ulisboa/tecnico/cnv/server/WebServer
+        
         
         
 
