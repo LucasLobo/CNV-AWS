@@ -7,9 +7,7 @@ import java.util.*;
 
 public class MethodCounter {
   private static PrintStream out = null;
-  private static int THREAD_ID = 12;
-
-  private static int[] m_count_vector;
+  private static HashMap<Integer, Integer> m_counts = new HashMap<>();
 
   /* main reads in all the files class files present in the input directory,
   * instruments them, and outputs them to the specified output directory.
@@ -35,29 +33,24 @@ public class MethodCounter {
     }
   }
 
-  public static synchronized void printICount(String foo) {
-    int id = (int) Thread.currentThread().getId() - THREAD_ID;
-    System.out.println(m_count_vector[id] + " methods");
-  }
-
   public static synchronized void mcount(int incr) {
-    int id = (int) Thread.currentThread().getId() - THREAD_ID;
-    m_count_vector[id]++;
-  }
-  public static void instanciateVector(int n){
-    m_count_vector = new int[n];
-    for (int i = 0; i < n; i++) {
-      m_count_vector[i] = 0;
+    int id = (int) Thread.currentThread().getId();
+    Integer current_m_count = m_counts.get(id);
+    if (current_m_count == null) {
+       m_counts.put(id, 1);
+    }
+    else {
+      m_counts.put(id, ++current_m_count);
     }
   }
 
-  public static int getBCount(){
-    int id = (int) Thread.currentThread().getId() - THREAD_ID;
-    return m_count_vector[id];
+  public static int getMethodCount(){
+    int id = (int) Thread.currentThread().getId();
+    return m_counts.get(id);
   }
 
   public static void resetVar(){
-    int id = (int) Thread.currentThread().getId() - THREAD_ID;
-    m_count_vector[id] = 0;
+    int id = (int) Thread.currentThread().getId();
+    m_counts.put(id, 0);
   }
 }

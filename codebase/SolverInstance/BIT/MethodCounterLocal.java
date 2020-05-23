@@ -29,7 +29,6 @@ public class MethodCounterLocal {
         }
         ci.addAfter("BIT/MethodCounterLocal", "printICount", ci.getClassName());
         ci.write(argv[1] + System.getProperty("file.separator") + infilename);
-
       }
     }
   }

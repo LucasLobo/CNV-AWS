@@ -40,7 +40,6 @@ public class WebServer {
 
     System.out.println(server.getAddress().toString());
 
-    MethodCounter.instanciateVector(4);
     if(args.length != 0)
     if(args[0].equals("debug"))
     debug = true;
@@ -77,7 +76,7 @@ public class WebServer {
   }
 
   static class SudokuSolverHandler implements HttpHandler {
-    int basicBlocks = 0;
+    int methods = 0;
 
     String[] requestInfo = new String[6];
     //Solver -> un -> n -> n -> name -> board
@@ -104,7 +103,7 @@ public class WebServer {
       newArgs.add("-b");
       newArgs.add(parseRequestBody(t.getRequestBody()));
 
-      newArgs.add("-d");
+      // newArgs.add("-d");
 
       // Store from ArrayList into regular String[].
       final String[] args = new String[newArgs.size()];
@@ -124,15 +123,11 @@ public class WebServer {
       final Solver s = SolverFactory.getInstance().makeSolver(ap);
       //Solve sudoku puzzle
 
-
       MethodCounter.resetVar();
-
       JSONArray solution = s.solveSudoku();
-
       System.out.println("Thread id = " + Thread.currentThread().getId());
-      //MethodCounter.printMethodCounter("");
-      basicBlocks = MethodCounter.getBCount();
-      System.out.println("Number of basic blocks were: " + basicBlocks);
+      methods = MethodCounter.getMethodCount();
+      System.out.println("Number of methods were: " + methods);
 
       // Send response to browser.
       final Headers hdrs = t.getResponseHeaders();
@@ -171,7 +166,7 @@ public class WebServer {
       StringBuilder filename = new StringBuilder();
       filename.append("~/metrics/logs/").append(requestInfo[0]).append("-").append(requestInfo[2]).append("x").append(requestInfo[3]).append("-").append(requestInfo[1]).append("-").append(new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SS").format(new Date()));
       try(PrintWriter writer = new PrintWriter(new File(filename.toString() + ".txt"))){
-        writer.write(basicBlocks);
+        writer.write(methods);
         writer.flush();
         System.out.println("Wrote to file.");
       } catch(FileNotFoundException e){
