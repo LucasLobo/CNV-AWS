@@ -99,8 +99,10 @@ public class EC2LaunchWaitTerminate {
 
         init();
 	boolean runInstance = false;
+	boolean stopInstance = false;
 	final int MAX_CPU_VALUE = 60;
-
+	final int MIN_CPU_VALUE = 20;
+	String instanceId = "";
         /*
          * Amazon EC2
          *
@@ -161,11 +163,20 @@ public class EC2LaunchWaitTerminate {
 				if(value3 > MAX_CPU_VALUE && value2 > MAX_CPU_VALUE && value1 > MAX_CPU_VALUE){
 					runInstance = true;
 					break;
+				}else if(value3 < MIN_CPU_VALUE && value2 < MIN_CPU_VALUE && value1 < MIN_CPU_VALUE){
+					stopInstance = true;
+					instanceId = name;
+					break;
 				}
 			}catch(IndexOutOfBoundsException e){
-				if(datapoints.get(size).getAverage() > MAX_CPU_VALUE)
+				if(datapoints.get(size).getAverage() > MAX_CPU_VALUE){
 					runInstance = true;
 					break;	
+				}else if(datapoints.get(size).getAverage() < MIN_CPU_VALUE){
+					stopInstance = true;
+					instanceId = name;
+					break;
+				}
 			}	
 		}
 	    }
@@ -194,6 +205,11 @@ public class EC2LaunchWaitTerminate {
             	for (Reservation reservation : reservations) {
                 	instances.addAll(reservation.getInstances());
             	}
+	    }else if(stopInstance){
+	    	System.out.println("Terminating the instance.");
+            	TerminateInstancesRequest termInstanceReq = new TerminateInstancesRequest();
+            	termInstanceReq.withInstanceIds(instanceId);
+		ec2.terminateInstances(termInstanceReq);
 	    }
             System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
             System.out.println("Waiting 1 minute. See your instance in the AWS console...");
