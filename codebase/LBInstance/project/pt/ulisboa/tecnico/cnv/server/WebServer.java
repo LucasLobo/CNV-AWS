@@ -1,5 +1,10 @@
 package pt.ulisboa.tecnico.cnv.server;
 
+import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
+import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
+import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorDLX;
+import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorCP;
+
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -66,15 +71,15 @@ public class WebServer {
 
 	static AmazonDynamoDB dynamoDB;
 	static AmazonEC2 ec2;
+	static EstimatorBFS estimatorBFS = new EstimatorBFS();
+	static EstimatorDLX estimatorDLX = new EstimatorDLX();
+	static EstimatorCP estimatorCP = new EstimatorCP();
 
 	public static void main(final String[] args) throws Exception {
 
-		// final HttpServer server = HttpServer.create(new
-		// InetSocketAddress("127.0.0.1", 8000), 0);
-
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-
 		createMSS();
+
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);		
 
 		// TODO
 		// Create a thread that will be receiving information from solver instances on
@@ -183,6 +188,21 @@ public class WebServer {
 		return buf.toString();
 	}
 
+
+	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
+		Estimator estimator;
+		if (solver == "BFS") {
+			estimator = estimatorBFS;
+		} else if (solver == "DLX") {
+			estimator = estimatorDLX;
+		} else if (solver == "CP") {
+			estimator = estimatorCP;
+		} else {
+			return -1;
+		}
+		return estimator.estimate(size, un);
+	}
+
 	static class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -222,6 +242,7 @@ public class WebServer {
 			 * ScanRequest(tableName).withScanFilter(scanFilter); ScanResult scanResult =
 			 * dynamoDB.scan(scanRequest); System.out.println("Result: " + scanResult);
 			 */
+
 
 			init();
 

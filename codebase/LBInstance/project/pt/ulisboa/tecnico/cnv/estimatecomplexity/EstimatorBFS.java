@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.cnv.server.estimatecomplexity;
+package pt.ulisboa.tecnico.cnv.estimatecomplexity;
 
 public class EstimatorBFS extends EstimatorTwoLevels {
 	public EstimatorBFS() {
