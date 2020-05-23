@@ -57,7 +57,14 @@ public class EC2LaunchWaitTerminate {
 
     static AmazonEC2      ec2;
     static AmazonCloudWatch cloudWatch;
+		static final int MAX_CPU_VALUE = 60;
+		static final int MIN_CPU_VALUE = 20;
+		static final int TIME_INTERVAL = 60000;
 
+
+		private static DescribeInstancesResult describeInstancesRequest;
+		private static List<Reservation> reservations;
+		private static Set<Instance> instances;
     /**
      * The only information needed to create a client are security credentials
      * consisting of the AWS Access Key ID and Secret Access Key. All other
@@ -69,7 +76,7 @@ public class EC2LaunchWaitTerminate {
      * @see com.amazonaws.auth.PropertiesCredentials
      * @see com.amazonaws.ClientConfiguration
      */
-    private static void init() throws Exception {
+    private static void init() {
 
         /*
          * The ProfileCredentialsProvider will return your [default]
@@ -86,144 +93,148 @@ public class EC2LaunchWaitTerminate {
                     "location (~/.aws/credentials), and is in valid format.",
                     e);
         }
-      ec2 = AmazonEC2ClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
-    cloudWatch = AmazonCloudWatchClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
+    	ec2 = AmazonEC2ClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
+    	cloudWatch = AmazonCloudWatchClientBuilder.standard().withRegion("us-east-1").withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
     }
 
+		private static void launchInstance(){
+			System.out.println("Starting a new instance.");
+			RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
-    public static void main(String[] args) throws Exception {
+				/* TODO: configure to use your AMI, key and security group */
+			runInstancesRequest.withImageId("ami-013bd72423f2e5b8c")
+												 .withInstanceType("t2.micro")
+												 .withMinCount(1)
+												 .withMaxCount(1)
+												 .withKeyName("cnv-project")
+												 .withSecurityGroups("cnv-project");
+			RunInstancesResult runInstancesResult = ec2.runInstances(runInstancesRequest);
+			String newInstanceId = runInstancesResult.getReservation().getInstances()
+																	.get(0).getInstanceId();
+			describeInstancesRequest = ec2.describeInstances();
+			reservations = describeInstancesRequest.getReservations();
+			instances = new HashSet<Instance>();
+
+			for (Reservation reservation : reservations) {
+				instances.addAll(reservation.getInstances());
+			}
+		}
+
+		private static void dropInstance(String instanceId){
+			System.out.println("Terminating the instance.");
+			TerminateInstancesRequest termInstanceReq = new TerminateInstancesRequest();
+			termInstanceReq.withInstanceIds(instanceId);
+			ec2.terminateInstances(termInstanceReq);
+		}
+
+
+    public static void main(String[] args) {
 
         System.out.println("===========================================");
         System.out.println("Welcome to the AWS Java SDK!");
         System.out.println("===========================================");
 
         init();
-	boolean runInstance = false;
-	boolean stopInstance = false;
-	final int MAX_CPU_VALUE = 60;
-	final int MIN_CPU_VALUE = 20;
-	String instanceId = "";
-        /*
-         * Amazon EC2
-         *
-         * The AWS EC2 client allows you to create, delete, and administer
-         * instances programmatically.
-         *
-         * In this sample, we use an EC2 client to get a list of all the
-         * availability zones, and all instances sorted by reservation id, then 
-         * create an instance, list existing instances again, wait a minute and 
-         * the terminate the started instance.
-         */
-        try {
-            DescribeAvailabilityZonesResult availabilityZonesResult = ec2.describeAvailabilityZones();
-            System.out.println("You have access to " + availabilityZonesResult.getAvailabilityZones().size() +
-                    " Availability Zones.");
-            /* using AWS Ireland. 
-             * TODO: Pick the zone where you have your AMI, sec group and keys */
-            DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();
-            List<Reservation> reservations = describeInstancesRequest.getReservations();
-            Set<Instance> instances = new HashSet<Instance>();
+				boolean runInstance = false;
+				boolean stopInstance = false;
+				String instanceId = "";
+				try{
+					while(true){
+		        /*
+		         * Amazon EC2
+		         *
+		         * The AWS EC2 client allows you to create, delete, and administer
+		         * instances programmatically.
+		         *
+		         * In this sample, we use an EC2 client to get a list of all the
+		         * availability zones, and all instances sorted by reservation id, then
+		         * create an instance, list existing instances again, wait a minute and
+		         * the terminate the started instance.
+		         */
+		        try {
+		            DescribeAvailabilityZonesResult availabilityZonesResult = ec2.describeAvailabilityZones();
+		            System.out.println("You have access to " + availabilityZonesResult.getAvailabilityZones().size() +
+		                    " Availability Zones.");
+		            /* using AWS Ireland.
+		             * TODO: Pick the zone where you have your AMI, sec group and keys */
+		            describeInstancesRequest = ec2.describeInstances();
+		            reservations = describeInstancesRequest.getReservations();
+		            instances = new HashSet<Instance>();
 
-            for (Reservation reservation : reservations) {
-                instances.addAll(reservation.getInstances());
-            }
+		            for (Reservation reservation : reservations) {
+		                instances.addAll(reservation.getInstances());
+		            }
 
-            System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
-            
-	    
-	    /*TODO */
-	    long offsetInMilliseconds = 1000 * 60 * 10;
-	    Dimension instanceDimension = new Dimension();
-            instanceDimension.setName("InstanceId");
-            List<Dimension> dims = new ArrayList<Dimension>();
-            dims.add(instanceDimension);
-	    /*TODO */
-	    System.out.println("Verifying CPU Costs.");
-	    for(Instance instance : instances){
-		String name = instance.getInstanceId();
-                String state = instance.getState().getName();
-                if (state.equals("running")) {
-			System.out.println("running instance id = " + name);
-			instanceDimension.setValue(name);
-			GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-				.withStartTime(new Date(new Date().getTime() - offsetInMilliseconds))
-				.withNamespace("AWS/EC2")
-				.withPeriod(60)
-				.withMetricName("CPUUtilization")
-				.withStatistics("Average")
-				.withDimensions(instanceDimension)
-				.withEndTime(new Date());
-			GetMetricStatisticsResult getMetricStatisticsResult = cloudWatch.getMetricStatistics(request);
-			List<Datapoint> datapoints = getMetricStatisticsResult.getDatapoints();
-			int size = datapoints.size()-1;
-			try{
-				Double value1 = datapoints.remove(size).getAverage();
-				Double value2 = datapoints.remove(size-1).getAverage();
-				Double value3 = datapoints.remove(size-2).getAverage();
-				if(value3 > MAX_CPU_VALUE && value2 > MAX_CPU_VALUE && value1 > MAX_CPU_VALUE){
-					runInstance = true;
-					break;
-				}else if(value3 < MIN_CPU_VALUE && value2 < MIN_CPU_VALUE && value1 < MIN_CPU_VALUE){
-					stopInstance = true;
-					instanceId = name;
-					break;
+		            System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
+
+
+
+			    		long offsetInMilliseconds = 1000 * 60 * 10;
+					    Dimension instanceDimension = new Dimension();
+		          instanceDimension.setName("InstanceId");
+		          List<Dimension> dims = new ArrayList<Dimension>();
+		          dims.add(instanceDimension);
+
+					    System.out.println("Verifying CPU Costs.");
+					    for(Instance instance : instances){
+								String name = instance.getInstanceId();
+			          String state = instance.getState().getName();
+			          if (state.equals("running")) {
+									System.out.println("running instance id = " + name);
+									instanceDimension.setValue(name);
+									GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+										.withStartTime(new Date(new Date().getTime() - offsetInMilliseconds))
+										.withNamespace("AWS/EC2")
+										.withPeriod(60)
+										.withMetricName("CPUUtilization")
+										.withStatistics("Average")
+										.withDimensions(instanceDimension)
+										.withEndTime(new Date());
+									GetMetricStatisticsResult getMetricStatisticsResult = cloudWatch.getMetricStatistics(request);
+									List<Datapoint> datapoints = getMetricStatisticsResult.getDatapoints();
+									int size = datapoints.size()-1;
+									try{
+										Double value1 = datapoints.remove(size).getAverage();
+										Double value2 = datapoints.remove(size-1).getAverage();
+										Double value3 = datapoints.remove(size-2).getAverage();
+										if(value3 > MAX_CPU_VALUE && value2 > MAX_CPU_VALUE && value1 > MAX_CPU_VALUE){
+											runInstance = true;
+											break;
+										}else if(value3 < MIN_CPU_VALUE && value2 < MIN_CPU_VALUE && value1 < MIN_CPU_VALUE){
+											stopInstance = true;
+											instanceId = name;
+											break;
+										}
+									}catch(IndexOutOfBoundsException e){
+										if(datapoints.get(size).getAverage() > MAX_CPU_VALUE){
+											runInstance = true;
+											break;
+										}else if(datapoints.get(size).getAverage() < MIN_CPU_VALUE){
+											stopInstance = true;
+											instanceId = name;
+											break;
+										}
+									}
+								}
+			    		}
+
+
+			    	if(runInstance){
+			    		launchInstance();
+				    }else if(stopInstance){
+							dropInstance(instanceId);
+				    }
+
+			      } catch (AmazonServiceException ase) {
+		                System.out.println("Caught Exception: " + ase.getMessage());
+		                System.out.println("Reponse Status Code: " + ase.getStatusCode());
+		                System.out.println("Error Code: " + ase.getErrorCode());
+		                System.out.println("Request ID: " + ase.getRequestId());
+		      	}
+						Thread.currentThread().sleep(TIME_INTERVAL);
+					}
+				}catch(InterruptedException e){
+				}catch(Exception e2){
 				}
-			}catch(IndexOutOfBoundsException e){
-				if(datapoints.get(size).getAverage() > MAX_CPU_VALUE){
-					runInstance = true;
-					break;	
-				}else if(datapoints.get(size).getAverage() < MIN_CPU_VALUE){
-					stopInstance = true;
-					instanceId = name;
-					break;
-				}
-			}	
-		}
-	    }
-
-
-	    if(runInstance){
-	    	System.out.println("Starting a new instance.");
-            	RunInstancesRequest runInstancesRequest =
-               	new RunInstancesRequest();
-
-            	/* TODO: configure to use your AMI, key and security group */
-            	runInstancesRequest.withImageId("ami-013bd72423f2e5b8c")
-                               .withInstanceType("t2.micro")
-                               .withMinCount(1)
-                               .withMaxCount(1)
-                               .withKeyName("cnv-project")
-                               .withSecurityGroups("cnv-project");
-            	RunInstancesResult runInstancesResult =
-            	   ec2.runInstances(runInstancesRequest);
-            	String newInstanceId = runInstancesResult.getReservation().getInstances()
-            	                          .get(0).getInstanceId();
-            	describeInstancesRequest = ec2.describeInstances();
-            	reservations = describeInstancesRequest.getReservations();
-            	instances = new HashSet<Instance>();
-
-            	for (Reservation reservation : reservations) {
-                	instances.addAll(reservation.getInstances());
-            	}
-	    }else if(stopInstance){
-	    	System.out.println("Terminating the instance.");
-            	TerminateInstancesRequest termInstanceReq = new TerminateInstancesRequest();
-            	termInstanceReq.withInstanceIds(instanceId);
-		ec2.terminateInstances(termInstanceReq);
-	    }
-            System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
-            System.out.println("Waiting 1 minute. See your instance in the AWS console...");
-            //Thread.sleep(60000);
-            //System.out.println("Terminating the instance.");
-            //TerminateInstancesRequest termInstanceReq = new TerminateInstancesRequest();
-            //termInstanceReq.withInstanceIds(newInstanceId);
-            //ec2.terminateInstances(termInstanceReq);
-            
-        } catch (AmazonServiceException ase) {
-                System.out.println("Caught Exception: " + ase.getMessage());
-                System.out.println("Reponse Status Code: " + ase.getStatusCode());
-                System.out.println("Error Code: " + ase.getErrorCode());
-                System.out.println("Request ID: " + ase.getRequestId());
-        }
-    }
+  	}
 }

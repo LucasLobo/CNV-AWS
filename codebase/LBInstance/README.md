@@ -19,7 +19,7 @@ In the ec2-user/home directory:
 
 3) Point your Java classpath to the AWS SDK and to the third party libs included:
   
-        export CLASSPATH=$CLASSPATH:path-to-sdk/lib/aws-java-sdk-1.XX.YYY.jar:path-to-sdk/third-party/lib/*:.
+        export CLASSPATH=$CLASSPATH:path-to-sdk/lib/aws-java-sdk-1.XX.YYY.jar:path-to-sdk/third-party/lib/*:~/project/
 
   or update if newer version is returned.
 
