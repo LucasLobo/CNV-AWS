@@ -38,7 +38,7 @@ In the ec2-user/home directory:
 Take note: the file must follow this exact syntax.
 
 ## To run the Web Server
-Assuming project/ is present, the ec2-user/home directory:
+Assuming project/ is present, in the ec2-user/home directory:
 1) Compile WebServer.java:
           
         javac project/pt/ulisboa/tecnico/cnv/server/WebServer.java 
