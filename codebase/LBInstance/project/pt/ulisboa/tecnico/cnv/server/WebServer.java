@@ -213,12 +213,24 @@ public class WebServer {
 			// Break it down into String[].
 			final String[] params = query.split("&");
 
+			String solver;
+			Integer size;
+			Integer un;
+
 			// Store as if it was a direct call to SolverMain.
 			final ArrayList<String> newArgs = new ArrayList<>();
 			for (final String p : params) {
 				final String[] splitParam = p.split("=");
 				newArgs.add("-" + splitParam[0]);
 				newArgs.add(splitParam[1]);
+
+				if (splitParam[0].equals("s")) {
+					solver = splitParam[1]
+				} else if (splitParam[0].equals("n1")) {
+					size = Integer.parseInt(splitParam[1]);
+				} else if (splitParam[0].equals("un")) {
+					un = Integer.parseInt(splitParam[1]);
+				}
 			}
 			newArgs.add("-b");
 			newArgs.add(parseRequestBody(t.getRequestBody()));
@@ -243,6 +255,8 @@ public class WebServer {
 			 * dynamoDB.scan(scanRequest); System.out.println("Result: " + scanResult);
 			 */
 
+			
+			Integer cost = estimateRequestCost(solver, size, un);
 
 			init();
 
