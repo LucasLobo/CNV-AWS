@@ -14,8 +14,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
@@ -25,6 +28,8 @@ import java.util.Set;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import java.lang.Object;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -74,6 +79,7 @@ public class WebServer {
 	static EstimatorBFS estimatorBFS = new EstimatorBFS();
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
+	private static HttpURLConnection con;
 
 	public static void main(final String[] args) throws Exception {
 
@@ -206,6 +212,9 @@ public class WebServer {
 	static class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
+
+			Instance chosen_instance;
+
 			// Get the query.
 			final String query = t.getRequestURI().getQuery();
 			System.out.println("> Query:\t" + query);
@@ -225,7 +234,7 @@ public class WebServer {
 				newArgs.add(splitParam[1]);
 
 				if (splitParam[0].equals("s")) {
-					solver = splitParam[1]
+					solver = splitParam[1];
 				} else if (splitParam[0].equals("n1")) {
 					size = Integer.parseInt(splitParam[1]);
 				} else if (splitParam[0].equals("un")) {
@@ -241,7 +250,7 @@ public class WebServer {
 			// Estimate request cost
 			// HERE
 			// ArrayList newArgs will be [-s, <solving_strategy>, -un, <thr__miss_elems>,
-			// -n1 <sizeX>, -n2 <sizeY>, -i <puzzle_name>, -b <puzzle_base_contents>, -d]
+			// -n1, <sizeX>, -n2, <sizeY>, -i, <puzzle_name>, -b, <puzzle_base_contents>, -d]
 
 			// Example on how to access the DynamoDB table
 			// Scan items for movies with a year attribute greater than 1985
@@ -277,11 +286,35 @@ public class WebServer {
 					// Selecting only from running instances
 					if (state.equals("running")) {
 						// TODO
-						// Choose Solver instance to send the request to
+
+						// When doing this TODO, delete the next three lines
+						// chosen_instance is the first running instance found
+						chosen_instance = instance;
+						break;
 					}
 				}
+
 				// TODO
-				// Send the request to the chosen Solver instance
+				// Send the request to the chosen Solver instance	
+				String url = chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
+				byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);	
+				
+				try {
+					URL myurl = new URL(url);
+					con = (HttpURLConnection) myurl.openConnection();
+
+					con.setDoOutput(true);
+					con.setRequestMethod("POST");
+					con.setRequestProperty("User-Agent", "Java client");
+					con.setRequestProperty("Content-Type", "application/json");
+
+					DataOutputStream out = new DataOutputStream(con.getOutputStream())) 
+					out.write(postData);
+					out.flush();
+					out.close();
+					con.disconnect();
+				}
+
 
 			} catch (AmazonServiceException ase) {
 				System.out.println("Caught Exception: " + ase.getMessage());
