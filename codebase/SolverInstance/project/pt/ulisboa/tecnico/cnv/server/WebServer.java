@@ -43,8 +43,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.text.SimpleDateFormat;
 
 public class WebServer {
-
-  public static boolean debug = false;
   static AmazonDynamoDB dynamoDB;
   static String tableName;
 
@@ -62,10 +60,6 @@ public class WebServer {
     server.start();
 
     System.out.println(server.getAddress().toString());
-
-    if(args.length != 0)
-    if(args[0].equals("debug"))
-    debug = true;
   }
 
   public static String parseRequestBody(InputStream is) throws IOException {
@@ -229,8 +223,6 @@ public class WebServer {
       // Send response to browser.
       final Headers hdrs = t.getResponseHeaders();
 
-
-
       hdrs.add("Content-Type", "application/json");
       hdrs.add("Access-Control-Allow-Origin", "*");
       hdrs.add("Access-Control-Allow-Credentials", "true");
@@ -238,7 +230,6 @@ public class WebServer {
       hdrs.add("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
 
       t.sendResponseHeaders(200, solution.toString().length());
-
 
       final OutputStream os = t.getResponseBody();
       OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -249,23 +240,7 @@ public class WebServer {
       System.out.println("> Sent response to " + t.getRemoteAddress().toString());
 
       int request_id = ThreadLocalRandom.current().nextInt(0, 123123213);
-      saveResultDB(request_id, solver, size, un, methods);
-
-      if(debug)
-      printToFile();
-    }
-
-
-    private void printToFile(){
-      StringBuilder filename = new StringBuilder();
-      filename.append("~/metrics/logs/").append(requestInfo[0]).append("-").append(requestInfo[2]).append("x").append(requestInfo[3]).append("-").append(requestInfo[1]).append("-").append(new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SS").format(new Date()));
-      try(PrintWriter writer = new PrintWriter(new File(filename.toString() + ".txt"))){
-        writer.write(methods);
-        writer.flush();
-        System.out.println("Wrote to file.");
-      } catch(FileNotFoundException e){
-        System.out.println(e.getMessage());
-      }
+      if (!solver.equals("undefined") && size != -1 && un != -1) saveResultDB(request_id, solver, size, un, methods);
     }
   }
 }

@@ -102,18 +102,6 @@ public class WebServer {
 		System.out.println(server.getAddress().toString());
 	}
 
-	private static Map<String, AttributeValue> newItem(int request_id, String strategy, int size, int un, int cost) {
-
-		Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-		item.put("request_id", new AttributeValue().withN(Integer.toString(request_id)));
-		item.put("strategy", new AttributeValue(strategy));
-		item.put("size", new AttributeValue().withN(Integer.toString(size)));
-		item.put("un", new AttributeValue().withN(Integer.toString(un)));
-		item.put("cost", new AttributeValue().withN(Integer.toString(cost)));
-
-		return item;
-	}
-
 	private static void createMSS() {
 
 		ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
@@ -222,9 +210,9 @@ public class WebServer {
 			// Break it down into String[].
 			final String[] params = query.split("&");
 
-			String solver = "";
-			Integer size = 0;
-			Integer un = 0;
+			String solver = "undefined";
+			Integer size = -1;
+			Integer un = -1;
 
 			// Store as if it was a direct call to SolverMain.
 			final ArrayList<String> newArgs = new ArrayList<>();
