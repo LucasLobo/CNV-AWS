@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 public class WebServer {
 
   public static boolean debug = false;
+  public static String LB_URL = "";
 
   public static void main(final String[] args) throws Exception {
 
@@ -75,17 +76,39 @@ public class WebServer {
     }
   }
 
+
+
+
   static class SudokuSolverHandler implements HttpHandler {
     int methods = 0;
-
     String[] requestInfo = new String[6];
-    //Solver -> un -> n -> n -> name -> board
+		//Solver -> un -> n -> n -> name -> board
+		final int UPDATE_TIME_INTERVAL = 10000;
+    long requestId;
+		boolean finished = false;
 
+
+    private URL sendUpdate(int requestId){
+      String query = requestId + "&" + methods;
+      String url = LB_URL + ":8000/update?" + query;
+
+      URL myUrl = new URL(url);
+      con = (HttpURLConnection) myUrl.openConnection();
+
+      con.setDoOutput(true);
+      con.setRequestMethod("POST");
+      con.setRequestProperty("User-Agent", "Java client");
+      con.setRequestProperty("Content-Type", "application/json");
+
+      DataOutputStream out = new DataOutputStream(con.getOutputStream()))
+      out.flush();
+      out.close();
+      con.disconnect();
+    }
 
 
     @Override
     public void handle(final HttpExchange t) throws IOException {
-
       // Get the query.
       final String query = t.getRequestURI().getQuery();
       System.out.println("> Query:\t" + query);
@@ -97,8 +120,12 @@ public class WebServer {
       final ArrayList<String> newArgs = new ArrayList<>();
       for (final String p : params) {
         final String[] splitParam = p.split("=");
-        newArgs.add("-" + splitParam[0]);
-        newArgs.add(splitParam[1]);
+        if(splitParam[0].equals("req")){
+          requestId = splitParam[2];
+        }else{
+          newArgs.add("-" + splitParam[0]);
+          newArgs.add(splitParam[1]);
+        }
       }
       newArgs.add("-b");
       newArgs.add(parseRequestBody(t.getRequestBody()));
@@ -116,6 +143,25 @@ public class WebServer {
         i++;
       }
 
+
+      //TODO - thread x a x tempo enviar url
+			new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try{
+					while(!finished){
+						Thread.currentThread().sleep(UPDATE_TIME_INTERVAL);
+						methods = MethodCounter.getMethodCount();
+						sendUpdate();
+					}
+				}catch(InterruptedException e){
+				}
+
+			}
+		}).start();
+
+
       // Get user-provided flags.
       final SolverArgumentParser ap = new SolverArgumentParser(args);
 
@@ -127,6 +173,8 @@ public class WebServer {
       JSONArray solution = s.solveSudoku();
       System.out.println("Thread id = " + Thread.currentThread().getId());
       methods = MethodCounter.getMethodCount();
+			finished = true;
+			sendUpdate();
       System.out.println("Number of methods were: " + methods);
 
       // Send response to browser.

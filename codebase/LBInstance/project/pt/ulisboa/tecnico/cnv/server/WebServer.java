@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 import java.util.HashSet;
 import java.util.List;
@@ -80,18 +81,20 @@ public class WebServer {
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
 	private static HttpURLConnection con;
+	static AtomicLong requestIds = new AtomicLong();
 
 	public static void main(final String[] args) throws Exception {
 
 		createMSS();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);		
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
 		// TODO
 		// Create a thread that will be receiving information from solver instances on
 		// their progress
 
 		server.createContext("/sudoku", new MyHandler());
+		server.createContext("/update", new ProgressChecksHandler());
 
 		// be aware! infinite pool of threads!
 		server.setExecutor(Executors.newCachedThreadPool());
@@ -209,12 +212,27 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
+	static class ProgressChecksHandler implements HttpHandler{
+		@Override
+			public void handle(HttpExchange t) throws IOException{
+				final String query = t.getRequestURI.getQuery();
+				final String[] params = query.split("&");
+				System.out.println("Request Id = " + params[0]);
+				System.out.println("Number of methods = " + params[1]);
+
+			}
+
+	}
+
+
+
 	static class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 
 			Instance chosen_instance;
-
+			long requestId = requestIds.getAndIncrement();
+			String requestIdQuery = "&req=" + requestId;
 			// Get the query.
 			final String query = t.getRequestURI().getQuery();
 			System.out.println("> Query:\t" + query);
@@ -264,7 +282,7 @@ public class WebServer {
 			 * dynamoDB.scan(scanRequest); System.out.println("Result: " + scanResult);
 			 */
 
-			
+
 			Integer cost = estimateRequestCost(solver, size, un);
 
 			init();
@@ -295,10 +313,10 @@ public class WebServer {
 				}
 
 				// TODO
-				// Send the request to the chosen Solver instance	
-				String url = chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
-				byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);	
-				
+				// Send the request to the chosen Solver instance
+				String url = chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query + requestIdQuery;
+				byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);
+
 				try {
 					URL myurl = new URL(url);
 					con = (HttpURLConnection) myurl.openConnection();
@@ -308,7 +326,7 @@ public class WebServer {
 					con.setRequestProperty("User-Agent", "Java client");
 					con.setRequestProperty("Content-Type", "application/json");
 
-					DataOutputStream out = new DataOutputStream(con.getOutputStream())) 
+					DataOutputStream out = new DataOutputStream(con.getOutputStream()))
 					out.write(postData);
 					out.flush();
 					out.close();
