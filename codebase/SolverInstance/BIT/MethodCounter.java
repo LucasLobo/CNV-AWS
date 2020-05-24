@@ -44,9 +44,8 @@ public class MethodCounter {
     }
   }
 
-  public static int getMethodCount(){
-    int id = (int) Thread.currentThread().getId();
-    return m_counts.get(id);
+  public static int getMethodCount(int thread_id){
+    return m_counts.get(thread_id);
   }
 
   public static void resetVar(){

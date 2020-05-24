@@ -20,13 +20,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.concurrent.Executors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,11 +87,7 @@ public class WebServer {
 
 		createMSS();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-
-		// TODO
-		// Create a thread that will be receiving information from solver instances on
-		// their progress
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8001), 0);		
 
 		server.createContext("/sudoku", new MyHandler());
 		server.createContext("/update", new ProgressChecksHandler());
@@ -103,18 +97,6 @@ public class WebServer {
 		server.start();
 
 		System.out.println(server.getAddress().toString());
-	}
-
-	private static Map<String, AttributeValue> newItem(int request_id, String strategy, int size, int un, int cost) {
-
-		Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-		item.put("request_id", new AttributeValue().withN(Integer.toString(request_id)));
-		item.put("strategy", new AttributeValue(strategy));
-		item.put("size", new AttributeValue().withN(Integer.toString(size)));
-		item.put("un", new AttributeValue().withN(Integer.toString(un)));
-		item.put("cost", new AttributeValue().withN(Integer.toString(cost)));
-
-		return item;
 	}
 
 	private static void createMSS() {
@@ -214,19 +196,32 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
-	static class ProgressChecksHandler implements HttpHandler{
+	static class ProgressChecksHandler implements HttpHandler {
 		@Override
-			public void handle(HttpExchange t) throws IOException{
-				final String query = t.getRequestURI.getQuery();
-				final String[] params = query.split("&");
-				System.out.println("Request Id = " + params[0]);
-				System.out.println("Number of methods = " + params[1]);
+		public void handle(HttpExchange t) throws IOException {	
 
-			}
+			// final String query = t.getRequestURI().getQuery();
+			// final String[] params = query.split("&");
+
+			// for (final String p : params) {
+			// 	final String[] splitParam = p.split("=");
+			// 	if (splitParam[0].equals("r")) {
+			// 		System.out.println("Request Id = " + splitParam[1]);
+			// 	} else if (splitParam[0].equals("m")) {
+			// 		System.out.println("Number of methods = " + splitParam[1]);
+			// 	}
+			// }
+
+			System.out.println("Test");
+
+			String response = "";
+			t.sendResponseHeaders(200, response.length());
+			OutputStream os = t.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
+		}
 
 	}
-
-
 
 	static class MyHandler implements HttpHandler {
 		@Override
@@ -234,6 +229,7 @@ public class WebServer {
 
 			long requestId = requestIds.getAndIncrement();
 			String requestIdQuery = "&req=" + requestId;
+
 			// Get the query.
 			final String query = t.getRequestURI().getQuery();
 			System.out.println("> Query:\t" + query);
@@ -241,9 +237,9 @@ public class WebServer {
 			// Break it down into String[].
 			final String[] params = query.split("&");
 
-			String solver = "";
-			Integer size = 0;
-			Integer un = 0;
+			String solver = "undefined";
+			Integer size = -1;
+			Integer un = -1;
 
 			// Store as if it was a direct call to SolverMain.
 			final ArrayList<String> newArgs = new ArrayList<>();
@@ -355,6 +351,7 @@ public class WebServer {
 						break;
 					}
 				}				
+
 
 
 			} catch (AmazonServiceException ase) {
