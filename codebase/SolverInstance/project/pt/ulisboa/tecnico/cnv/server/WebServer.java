@@ -46,7 +46,7 @@ import java.text.SimpleDateFormat;
 
 public class WebServer {
 
-  public static String LB_URL = "localhost";
+  public static String LB_URL = "127.0.0.1";
   public static String LB_port = "8001";
   static AmazonDynamoDB dynamoDB;
   static String tableName;
@@ -264,8 +264,8 @@ public class WebServer {
         saveResultDB(request_id, solver, size, un, methods);
     }
 
-    private static void sendUpdate(long request_id, int methods) {
-      String query = "r=" + request_id + "&" + "m=" + methods;
+    private static void sendUpdate(long request_id, int cost) {
+      String query = "r=" + request_id + "&" + "c=" + cost;
       String url = "http://" + LB_URL + ":" + LB_port + "/update?" + query;
       System.out.println(">>> " + url);
       try {
@@ -273,12 +273,14 @@ public class WebServer {
         HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
   
         con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("User-Agent", "Java client");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setDoOutput(true);
   
         DataOutputStream out = new DataOutputStream(con.getOutputStream());
         out.flush();
         out.close();
+        con.getResponseCode();
         con.disconnect();
       } catch (Exception e) {
         System.out.println(e);

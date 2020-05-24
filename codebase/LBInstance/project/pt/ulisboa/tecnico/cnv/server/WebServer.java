@@ -200,19 +200,23 @@ public class WebServer {
 		@Override
 		public void handle(HttpExchange t) throws IOException {	
 
-			// final String query = t.getRequestURI().getQuery();
-			// final String[] params = query.split("&");
+			final String query = t.getRequestURI().getQuery();
+			final String[] params = query.split("&");
 
-			// for (final String p : params) {
-			// 	final String[] splitParam = p.split("=");
-			// 	if (splitParam[0].equals("r")) {
-			// 		System.out.println("Request Id = " + splitParam[1]);
-			// 	} else if (splitParam[0].equals("m")) {
-			// 		System.out.println("Number of methods = " + splitParam[1]);
-			// 	}
-			// }
+			System.out.println(query);
+			Integer requestId = -1;
+			Integer cost = -1;
 
-			System.out.println("Test");
+			for (final String p : params) {
+				final String[] splitParam = p.split("=");
+				if (splitParam[0].equals("r")) {
+					requestId = Integer.valueOf(splitParam[1]);
+				} else if (splitParam[0].equals("c")) {
+					cost = Integer.valueOf(splitParam[1]);
+				}
+			}
+
+			// System.out.println("Test");
 
 			String response = "";
 			t.sendResponseHeaders(200, response.length());
