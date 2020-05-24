@@ -20,12 +20,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.Executors;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,18 +81,16 @@ public class WebServer {
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
 	private static HttpURLConnection con;
+	static AtomicLong requestIds = new AtomicLong();
 
 	public static void main(final String[] args) throws Exception {
 
 		createMSS();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);		
-
-		// TODO
-		// Create a thread that will be receiving information from solver instances on
-		// their progress
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8001), 0);		
 
 		server.createContext("/sudoku", new MyHandler());
+		server.createContext("/update", new ProgressChecksHandler());
 
 		// be aware! infinite pool of threads!
 		server.setExecutor(Executors.newCachedThreadPool());
@@ -199,9 +196,39 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
+	static class ProgressChecksHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {	
+
+			// final String query = t.getRequestURI().getQuery();
+			// final String[] params = query.split("&");
+
+			// for (final String p : params) {
+			// 	final String[] splitParam = p.split("=");
+			// 	if (splitParam[0].equals("r")) {
+			// 		System.out.println("Request Id = " + splitParam[1]);
+			// 	} else if (splitParam[0].equals("m")) {
+			// 		System.out.println("Number of methods = " + splitParam[1]);
+			// 	}
+			// }
+
+			System.out.println("Test");
+
+			String response = "";
+			t.sendResponseHeaders(200, response.length());
+			OutputStream os = t.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
+		}
+
+	}
+
 	static class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
+
+			long requestId = requestIds.getAndIncrement();
+			String requestIdQuery = "&req=" + requestId;
 
 			// Get the query.
 			final String query = t.getRequestURI().getQuery();
@@ -267,7 +294,7 @@ public class WebServer {
 						// Send incoming request to the chosen Solver Instance
 						// chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
 						// next line is for testing purposes
-						String url = "ec2-54-83-180-157.compute-1.amazonaws.com:8000/sudoku?" + query;
+						String url = "ec2-54-83-180-157.compute-1.amazonaws.com:8000/sudoku?" + query + requestIdQuery;
 						System.out.println("The url is " + url);
 						byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);
 						
