@@ -165,6 +165,7 @@ public class WebServer {
     long request_id;
     boolean finished;
     int thread_id;
+    int remote_address = t.getRemoteAddress().toString();
 
     @Override
     public void handle(final HttpExchange t) throws IOException {
@@ -218,7 +219,7 @@ public class WebServer {
               Thread.sleep(UPDATE_TIME_INTERVAL);
               while (!finished) {
                 methods = MethodCounter.getMethodCount(thread_id);
-                sendUpdate(request_id, methods);
+                sendUpdate(request_id, methods, remote_address);
                 Thread.sleep(UPDATE_TIME_INTERVAL);
               }
             } catch (InterruptedException e) {
@@ -264,9 +265,9 @@ public class WebServer {
         saveResultDB(request_id, solver, size, un, methods);
     }
 
-    private static void sendUpdate(long request_id, int cost) {
+    private static void sendUpdate(long request_id, int cost, String remote_address) {
       String query = "r=" + request_id + "&" + "c=" + cost;
-      String url = "http://" + LB_URL + ":" + LB_port + "/update?" + query;
+      String url = "http://" + remote_address + "/update?" + query;
       System.out.println(">>> " + url);
       try {
         URL myUrl = new URL(url);
