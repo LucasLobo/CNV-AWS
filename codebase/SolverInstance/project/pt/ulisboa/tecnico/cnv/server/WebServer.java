@@ -116,14 +116,13 @@ public class WebServer {
         i++;
       }
 
+      MethodCounter.resetVar();
       // Get user-provided flags.
       final SolverArgumentParser ap = new SolverArgumentParser(args);
 
       // Create solver instance from factory.
       final Solver s = SolverFactory.getInstance().makeSolver(ap);
       //Solve sudoku puzzle
-
-      MethodCounter.resetVar();
       JSONArray solution = s.solveSudoku();
       System.out.println("Thread id = " + Thread.currentThread().getId());
       methods = MethodCounter.getMethodCount();
