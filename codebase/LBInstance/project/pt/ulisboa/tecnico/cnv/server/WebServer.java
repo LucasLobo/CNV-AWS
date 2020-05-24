@@ -72,6 +72,8 @@ import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 
+import org.json.*;
+
 public class WebServer {
 
 	static AmazonDynamoDB dynamoDB;
@@ -126,7 +128,7 @@ public class WebServer {
 				.build();
 
 		try {
-			String tableName = "incoming-requests-table";
+			String tableName = "request-cost-table";
 
 			// Create a table with a primary hash key named 'name', which holds a string
 			CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
@@ -213,8 +215,6 @@ public class WebServer {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 
-			Instance chosen_instance;
-
 			// Get the query.
 			final String query = t.getRequestURI().getQuery();
 			System.out.println("> Query:\t" + query);
@@ -222,9 +222,9 @@ public class WebServer {
 			// Break it down into String[].
 			final String[] params = query.split("&");
 
-			String solver;
-			Integer size;
-			Integer un;
+			String solver = "";
+			Integer size = 0;
+			Integer un = 0;
 
 			// Store as if it was a direct call to SolverMain.
 			final ArrayList<String> newArgs = new ArrayList<>();
@@ -246,25 +246,6 @@ public class WebServer {
 
 			newArgs.add("-d");
 
-			// TODO
-			// Estimate request cost
-			// HERE
-			// ArrayList newArgs will be [-s, <solving_strategy>, -un, <thr__miss_elems>,
-			// -n1, <sizeX>, -n2, <sizeY>, -i, <puzzle_name>, -b, <puzzle_base_contents>, -d]
-
-			// Example on how to access the DynamoDB table
-			// Scan items for movies with a year attribute greater than 1985
-			/*
-			 * HashMap<String, Condition> scanFilter = new HashMap<String, Condition>();
-			 * Condition condition = new Condition()
-			 * .withComparisonOperator(ComparisonOperator.GT.toString())
-			 * .withAttributeValueList(new AttributeValue().withN("1985"));
-			 * scanFilter.put("year", condition); ScanRequest scanRequest = new
-			 * ScanRequest(tableName).withScanFilter(scanFilter); ScanResult scanResult =
-			 * dynamoDB.scan(scanRequest); System.out.println("Result: " + scanResult);
-			 */
-
-			
 			Integer cost = estimateRequestCost(solver, size, un);
 
 			init();
@@ -286,34 +267,76 @@ public class WebServer {
 					// Selecting only from running instances
 					if (state.equals("running")) {
 						// TODO
+						// Uses information on the global structure to decide to which instance it will send the request
 
 						// When doing this TODO, delete the next three lines
 						// chosen_instance is the first running instance found
-						chosen_instance = instance;
+						Instance chosen_instance = instance;
+
+						// TODO
+						// Saves information about the request in a global structure
+
+						// Send incoming request to the chosen Solver Instance
+						// chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
+						// next line is for testing purposes
+						String url = "ec2-54-83-180-157.compute-1.amazonaws.com:8000/sudoku?" + query;
+						System.out.println("The url is " + url);
+						byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);
+						
+						
+						URL myurl = new URL(url);
+						con = (HttpURLConnection) myurl.openConnection();
+
+						con.setDoOutput(true);
+						con.setRequestMethod("POST");
+						con.setRequestProperty("User-Agent", "Java client");
+						con.setRequestProperty("Content-Type", "application/json");
+
+						DataOutputStream out = new DataOutputStream(con.getOutputStream());
+						out.write(postData);
+						out.flush();
+						out.close();
+
+						// Receive response from Solver Instance
+						int status = con.getResponseCode();
+						BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+						String inputLine;
+						StringBuffer content = new StringBuffer();
+						while ((inputLine = in.readLine()) != null) {
+							content.append(inputLine);
+						}
+
+						// Turn String content into a JSONArray
+						JSONArray jsonArr = new JSONArray(content);
+
+						in.close();
+						con.disconnect();
+
+						// Send response to browser
+						final Headers hdrs = t.getResponseHeaders();
+
+						hdrs.add("Content-Type", "application/json");
+
+						hdrs.add("Access-Control-Allow-Origin", "*");
+
+						hdrs.add("Access-Control-Allow-Credentials", "true");
+						hdrs.add("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS");
+						hdrs.add("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+
+						t.sendResponseHeaders(200, jsonArr.toString().length());
+
+
+						final OutputStream os = t.getResponseBody();
+						OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+						osw.write(jsonArr.toString());
+						osw.flush();
+						osw.close();
+
+						os.close();
 						break;
 					}
-				}
+				}				
 
-				// TODO
-				// Send the request to the chosen Solver instance	
-				String url = chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
-				byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);	
-				
-				try {
-					URL myurl = new URL(url);
-					con = (HttpURLConnection) myurl.openConnection();
-
-					con.setDoOutput(true);
-					con.setRequestMethod("POST");
-					con.setRequestProperty("User-Agent", "Java client");
-					con.setRequestProperty("Content-Type", "application/json");
-
-					DataOutputStream out = new DataOutputStream(con.getOutputStream())) 
-					out.write(postData);
-					out.flush();
-					out.close();
-					con.disconnect();
-				}
 
 
 			} catch (AmazonServiceException ase) {
