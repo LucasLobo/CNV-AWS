@@ -47,7 +47,7 @@ import java.text.SimpleDateFormat;
 public class WebServer {
 
   public static String LB_URL = "127.0.0.1";
-  public static String LB_port = "8001";
+  public static String LB_port = "8000";
   static AmazonDynamoDB dynamoDB;
   static String tableName;
 
@@ -55,7 +55,7 @@ public class WebServer {
 
     createMSS();
 
-    final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+    final HttpServer server = HttpServer.create(new InetSocketAddress(8500), 0);
 
     server.createContext("/test", new HealthCheckHandler());
     server.createContext("/sudoku", new SudokuSolverHandler());

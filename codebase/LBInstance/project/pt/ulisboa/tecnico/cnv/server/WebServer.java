@@ -86,8 +86,9 @@ public class WebServer {
 	public static void main(final String[] args) throws Exception {
 
 		createMSS();
+		init();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8001), 0);		
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);		
 
 		server.createContext("/sudoku", new MyHandler());
 		server.createContext("/update", new ProgressChecksHandler());
@@ -216,8 +217,6 @@ public class WebServer {
 				}
 			}
 
-			// System.out.println("Test");
-
 			String response = "";
 			t.sendResponseHeaders(200, response.length());
 			OutputStream os = t.getResponseBody();
@@ -250,7 +249,7 @@ public class WebServer {
 			for (final String p : params) {
 				final String[] splitParam = p.split("=");
 				newArgs.add("-" + splitParam[0]);
-				newArgs.add(splitParam[1]);
+				newArgs.add(splitParam[1]); 
 
 				if (splitParam[0].equals("s")) {
 					solver = splitParam[1];
@@ -263,11 +262,9 @@ public class WebServer {
 			newArgs.add("-b");
 			newArgs.add(parseRequestBody(t.getRequestBody()));
 
-			newArgs.add("-d");
+			// newArgs.add("-d");
 
 			Integer cost = estimateRequestCost(solver, size, un);
-
-			init();
 
 			try {
 				DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();
@@ -282,7 +279,7 @@ public class WebServer {
 					String name = instance.getInstanceId();
 					String state = instance.getState().getName();
 					// Selecting only from running instances
-					if (state.equals("running")) {	
+					if (true || state.equals("running")) {	
 						// TODO
 						// Uses information on the global structure to decide to which instance it will send the request
 						// When doing this TODO, delete the next line
@@ -295,7 +292,10 @@ public class WebServer {
 						// Send incoming request to the chosen Solver Instance
 						// chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
 						// next line is for testing purposes, insert public DNS of the solver instance you want to test
-						String url = "http://ec2-3-89-137-65.compute-1.amazonaws.com:8000/sudoku?" + query;
+
+						String instanceURL = "127.0.0.1";
+						String instancePort = "8500";
+						String url = "http://" + instanceURL + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
 
 						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
 						URL myurl = new URL(url);
@@ -335,9 +335,9 @@ public class WebServer {
 								my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
 							}
 						}
-						for (int i = 0; i < my_matrics.length; i++) 
-							for (int j = 0; j < my_matrics[i].length; j++) 
-								System.out.print(my_matrics[i][j] + " ");
+						// for (int i = 0; i < my_matrics.length; i++) 
+						// 	for (int j = 0; j < my_matrics[i].length; j++) 
+						// 		System.out.print(my_matrics[i][j] + " ");
 
 						JSONArray solution = new JSONArray();
 						for(int lin = 0; lin<Integer.parseInt(newArgs.get(5)); lin++){
