@@ -273,23 +273,20 @@ public class WebServer {
 				DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();
 				List<Reservation> reservations = describeInstancesRequest.getReservations();
 				Set<Instance> instances = new HashSet<Instance>();
-
 				for (Reservation reservation : reservations) {
 					instances.addAll(reservation.getInstances());
 				}
 
 				System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
-
 				for (Instance instance : instances) {
 					String name = instance.getInstanceId();
 					String state = instance.getState().getName();
 					// Selecting only from running instances
-					if (state.equals("running")) {
+					if (state.equals("running")) {	
 						// TODO
 						// Uses information on the global structure to decide to which instance it will send the request
-
-						// When doing this TODO, delete the next three lines
-						// chosen_instance is the first running instance found
+						// When doing this TODO, delete the next line
+						// chosen_instance, as it is, is the first running instance found
 						Instance chosen_instance = instance;
 
 						// TODO
@@ -297,20 +294,17 @@ public class WebServer {
 
 						// Send incoming request to the chosen Solver Instance
 						// chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
-						// next line is for testing purposes
-						String url = "ec2-54-83-180-157.compute-1.amazonaws.com:8000/sudoku?" + query + requestIdQuery;
-						System.out.println("The url is " + url);
-						byte[] postData = parseRequestBody(t.getRequestBody()).getBytes(StandardCharsets.UTF_8);
-						
-						
-						URL myurl = new URL(url);
-						con = (HttpURLConnection) myurl.openConnection();
+						// next line is for testing purposes, insert public DNS of the solver instance you want to test
+						String url = "http://ec2-3-89-137-65.compute-1.amazonaws.com:8000/sudoku?" + query;
 
+						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
+						URL myurl = new URL(url);
+
+						con = (HttpURLConnection) myurl.openConnection();
 						con.setDoOutput(true);
 						con.setRequestMethod("POST");
 						con.setRequestProperty("User-Agent", "Java client");
-						con.setRequestProperty("Content-Type", "application/json");
-
+						con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
 						DataOutputStream out = new DataOutputStream(con.getOutputStream());
 						out.write(postData);
 						out.flush();
@@ -324,48 +318,62 @@ public class WebServer {
 						while ((inputLine = in.readLine()) != null) {
 							content.append(inputLine);
 						}
-
-						// Turn String content into a JSONArray
-						JSONArray jsonArr = new JSONArray(content);
-
 						in.close();
 						con.disconnect();
 
+						// Turn String content into a JSONArray
+						String s = content.toString();
+						s=s.replace("[","");//replacing all [ to ""
+						s=s.substring(0,s.length()-2);//ignoring last two ]]
+						String s1[]=s.split("],");//separating all by "],"
+						int my_matrics[][] = new int[s1.length][s1.length];//declaring two dimensional matrix for input
+
+						for(int i=0;i<s1.length;i++){
+							s1[i]=s1[i].trim();//ignoring all extra space if the string s1[i] has
+							String single_int[]=s1[i].split(",");//separating integers by ", "
+							for(int j=0;j<single_int.length;j++){
+								my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
+							}
+						}
+						for (int i = 0; i < my_matrics.length; i++) 
+							for (int j = 0; j < my_matrics[i].length; j++) 
+								System.out.print(my_matrics[i][j] + " ");
+
+						JSONArray solution = new JSONArray();
+						for(int lin = 0; lin<Integer.parseInt(newArgs.get(5)); lin++){
+							JSONArray line = new JSONArray();
+							for(int col = 0; col<Integer.parseInt(newArgs.get(7)); col++){
+								line.put(my_matrics[lin][col]);
+
+							}
+							solution.put(line);
+						}
+
 						// Send response to browser
 						final Headers hdrs = t.getResponseHeaders();
-
 						hdrs.add("Content-Type", "application/json");
-
 						hdrs.add("Access-Control-Allow-Origin", "*");
-
 						hdrs.add("Access-Control-Allow-Credentials", "true");
 						hdrs.add("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS");
 						hdrs.add("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
-
-						t.sendResponseHeaders(200, jsonArr.toString().length());
-
-
+						t.sendResponseHeaders(200, solution.toString().length());
 						final OutputStream os = t.getResponseBody();
 						OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-						osw.write(jsonArr.toString());
+						osw.write(solution.toString());
 						osw.flush();
 						osw.close();
-
 						os.close();
+						System.out.println("> Sent response to " + t.getRemoteAddress().toString());
 						break;
 					}
 				}				
-
-
-
 			} catch (AmazonServiceException ase) {
 				System.out.println("Caught Exception: " + ase.getMessage());
 				System.out.println("Reponse Status Code: " + ase.getStatusCode());
 				System.out.println("Error Code: " + ase.getErrorCode());
 				System.out.println("Request ID: " + ase.getRequestId());
-			}
 
+			}
 		}
 	}
-
 }
