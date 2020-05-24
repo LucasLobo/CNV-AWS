@@ -208,8 +208,6 @@ public class WebServer {
 
       // newArgs.add("-d");
 
-      MethodCounter.resetVar();
-
       if (!LB_URL.equals("")) {
         new Thread(new Runnable() {
           @Override
@@ -218,6 +216,7 @@ public class WebServer {
               Thread.sleep(UPDATE_TIME_INTERVAL);
               while (!finished) {
                 methods = MethodCounter.getMethodCount(thread_id);
+                System.out.println(methods);
                 sendUpdate(request_id, methods);
                 Thread.sleep(UPDATE_TIME_INTERVAL);
               }
@@ -234,6 +233,7 @@ public class WebServer {
       // Create solver instance from factory.
       final Solver s = SolverFactory.getInstance().makeSolver(ap);
 
+      MethodCounter.resetVar();
       // Solve sudoku puzzle
       JSONArray solution = s.solveSudoku();
       System.out.println("Thread id = " + Thread.currentThread().getId());
@@ -264,8 +264,8 @@ public class WebServer {
         saveResultDB(request_id, solver, size, un, methods);
     }
 
-    private static void sendUpdate(long request_id, int cost) {
-      String query = "r=" + request_id + "&" + "c=" + cost;
+    private static void sendUpdate(long request_id, int methods) {
+      String query = "r=" + request_id + "&" + "m=" + methods;
       String url = "http://" + LB_URL + ":" + LB_port + "/update?" + query;
       System.out.println(">>> " + url);
       try {
