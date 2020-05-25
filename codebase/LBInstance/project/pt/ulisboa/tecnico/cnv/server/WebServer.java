@@ -41,6 +41,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
@@ -202,13 +203,11 @@ public class WebServer {
 	}
 
 	private static List<Map<String,AttributeValue>> fetchEntriesHigherThan(int id) {
-		// ArrayList<Item> itemList = new ArrayList<>();
-		// Table table = dynamoDB.getTable(tableName);
-		// Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
-		// expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
-		// ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
-		// ScanResult result = dynamoDB.scan(scanRequest);
-    	// return result.getItems();
+		 Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+		 expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
+		 ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
+		 ScanResult result = dynamoDB.scan(scanRequest);
+    	 return result.getItems();
   	}
 
 	private static Integer estimateCostByMethodNumber(String solver, Integer methods) {
