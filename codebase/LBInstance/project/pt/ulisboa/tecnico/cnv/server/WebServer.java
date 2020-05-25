@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorDLX;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorCP;
+import pt.ulisboa.tecnico.cnv.server.AutoScaler;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -85,6 +86,7 @@ public class WebServer {
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
 	static AtomicLong requestIds = new AtomicLong();
+	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
@@ -94,8 +96,10 @@ public class WebServer {
 
 	public static void main(final String[] args) throws Exception {
 
+		startAutoScaler();
 		createMSS();
 		init();
+		updateEstimators();
 
 		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
@@ -120,6 +124,15 @@ public class WebServer {
 		}).start();
 
 		System.out.println(server.getAddress().toString());
+	}
+
+	private static void startAutoScaler() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+			  AutoScaler.startAS();
+			}
+		}).start();
 	}
 
 	private static void createMSS() {
@@ -260,7 +273,7 @@ public class WebServer {
 	}
 
 	private static void sendRequest(String query, String body){
-		
+
 	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
@@ -277,7 +290,7 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
-	private static List<Map<String,AttributeValue>> fetchEntriesHigherThan(int id) {
+	private static List<Map<String,AttributeValue>> fetchEntriesHigherThan(Long id) {
 		 Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
 		 expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
 		 ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
@@ -297,6 +310,49 @@ public class WebServer {
 			return -1;
 		}
 		return estimator.transform(methods);
+	}
+
+	private static void addPoint(String solver, Integer size, Integer un, Integer methods) {
+		Estimator estimator;
+		if (solver.equals("BFS")) {
+			estimator = estimatorBFS;
+		} else if (solver.equals("DLX")) {
+			estimator = estimatorDLX;
+		} else if (solver.equals("CP")) {
+			estimator = estimatorCP;
+		} else {
+			return;
+		}
+		estimator.addDataPoint(size, un, methods);
+	}
+
+	private static void updateEstimators() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Long lastSaved = lastSavedRequestId.get();
+						Long biggestRequestId = 0L;
+						List<Map<String,AttributeValue>> mss_entries = fetchEntriesHigherThan(lastSaved);
+
+						for (Map<String,AttributeValue> line : mss_entries) {
+							Long requestId = Long.parseLong(line.get("request_id").getN());
+							String solver = line.get("strategy").getS();
+							Integer size = Integer.parseInt(line.get("size").getN());
+							Integer un = Integer.parseInt(line.get("un").getN());
+							Integer methods = Integer.parseInt(line.get("cost").getN());
+							addPoint(solver, size, un, methods);
+							if (requestId > biggestRequestId) biggestRequestId = requestId;
+						}
+						lastSavedRequestId.set(biggestRequestId);
+						Thread.sleep(30*1000);
+					}
+				} catch (RuntimeException e) {
+				} catch (Exception e) {
+				}
+			}
+		}).start();
 	}
 
 	static class ProgressChecksHandler implements HttpHandler {

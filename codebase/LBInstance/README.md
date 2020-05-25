@@ -45,8 +45,8 @@ Take note: the file must follow this exact syntax.
 
         # IF RNL
         export CLASSPATH="/home/test/cnv-project19-20/codebase/LBInstance/project"
-        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.XX.YYY/lib/aws-java-sdk-1.11.787.jar"
-        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.XX.YYY/third-party/lib/*"
+        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.11.789/lib/aws-java-sdk-1.11.789.jar"
+        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.11.789/third-party/lib/*"
 
 
 ## To run the Web Server
