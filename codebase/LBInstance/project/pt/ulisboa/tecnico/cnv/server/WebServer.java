@@ -88,7 +88,7 @@ public class WebServer {
 		createMSS();
 		init();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);		
+		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
 		server.createContext("/sudoku", new MyHandler());
 		server.createContext("/update", new ProgressChecksHandler());
@@ -197,9 +197,20 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
+	private static List<Map<String,AttributeValue>> fetchEntries(int id){
+    ArrayList<Item> itemList = new ArrayList<>();
+    Table table = dynamoDB.getTable(tableName);
+    Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+    expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
+    ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
+    ScanResult result = dynamoDB.scan(scanRequest);
+    return result.getItems();
+
+  }
+
 	static class ProgressChecksHandler implements HttpHandler {
 		@Override
-		public void handle(HttpExchange t) throws IOException {	
+		public void handle(HttpExchange t) throws IOException {
 
 			final String query = t.getRequestURI().getQuery();
 			final String[] params = query.split("&");
@@ -249,7 +260,7 @@ public class WebServer {
 			for (final String p : params) {
 				final String[] splitParam = p.split("=");
 				newArgs.add("-" + splitParam[0]);
-				newArgs.add(splitParam[1]); 
+				newArgs.add(splitParam[1]);
 
 				if (splitParam[0].equals("s")) {
 					solver = splitParam[1];
@@ -279,7 +290,7 @@ public class WebServer {
 					String name = instance.getInstanceId();
 					String state = instance.getState().getName();
 					// Selecting only from running instances
-					if (true || state.equals("running")) {	
+					if (true || state.equals("running")) {
 						// TODO
 						// Uses information on the global structure to decide to which instance it will send the request
 						// When doing this TODO, delete the next line
@@ -335,8 +346,8 @@ public class WebServer {
 								my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
 							}
 						}
-						// for (int i = 0; i < my_matrics.length; i++) 
-						// 	for (int j = 0; j < my_matrics[i].length; j++) 
+						// for (int i = 0; i < my_matrics.length; i++)
+						// 	for (int j = 0; j < my_matrics[i].length; j++)
 						// 		System.out.print(my_matrics[i][j] + " ");
 
 						JSONArray solution = new JSONArray();
@@ -366,7 +377,7 @@ public class WebServer {
 						System.out.println("> Sent response to " + t.getRemoteAddress().toString());
 						break;
 					}
-				}				
+				}
 			} catch (AmazonServiceException ase) {
 				System.out.println("Caught Exception: " + ase.getMessage());
 				System.out.println("Reponse Status Code: " + ase.getStatusCode());

@@ -60,11 +60,12 @@ public class EC2LaunchWaitTerminate {
 		static final int MAX_CPU_VALUE = 60;
 		static final int MIN_CPU_VALUE = 20;
 		static final int TIME_INTERVAL = 60000;
+		static final String SOLVER_IMAGE_ID = "ami-013bd72423f2e5b8c";
 
 
 		private static DescribeInstancesResult describeInstancesRequest;
 		private static List<Reservation> reservations;
-		private static Set<Instance> instances;
+		public static Set<Instance> instances;
     /**
      * The only information needed to create a client are security credentials
      * consisting of the AWS Access Key ID and Secret Access Key. All other
@@ -102,7 +103,7 @@ public class EC2LaunchWaitTerminate {
 			RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
 				/* TODO: configure to use your AMI, key and security group */
-			runInstancesRequest.withImageId("ami-013bd72423f2e5b8c")
+			runInstancesRequest.withImageId(SOLVER_IMAGE_ID)
 												 .withInstanceType("t2.micro")
 												 .withMinCount(1)
 												 .withMaxCount(1)
@@ -115,9 +116,7 @@ public class EC2LaunchWaitTerminate {
 			reservations = describeInstancesRequest.getReservations();
 			instances = new HashSet<Instance>();
 
-			for (Reservation reservation : reservations) {
-				instances.addAll(reservation.getInstances());
-			}
+			addSolverInstances();
 		}
 
 		private static void dropInstance(String instanceId){
@@ -127,6 +126,14 @@ public class EC2LaunchWaitTerminate {
 			ec2.terminateInstances(termInstanceReq);
 		}
 
+		private static void addSolverInstances(){
+			for (Reservation reservation : reservations) {
+				for(Instance instance : reservation.getInstances()){
+					if(instance.getImageId().equals(SOLVER_IMAGE_ID))
+						instances.add(instance);
+				}
+			}
+		}
 
     public static void main(String[] args) {
 
@@ -161,11 +168,9 @@ public class EC2LaunchWaitTerminate {
 		            reservations = describeInstancesRequest.getReservations();
 		            instances = new HashSet<Instance>();
 
-		            for (Reservation reservation : reservations) {
-		                instances.addAll(reservation.getInstances());
-		            }
+		            addSolverInstances();
 
-		            System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
+		            System.out.println("You have " + instances.size() + " Amazon EC2 Solver instance(s) running.");
 
 
 
