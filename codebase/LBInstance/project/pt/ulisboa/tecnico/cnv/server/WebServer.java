@@ -1,5 +1,4 @@
 package pt.ulisboa.tecnico.cnv.server;
-package pt.ulisboa.tecnico.cnv.server;
 
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
@@ -86,11 +85,12 @@ public class WebServer {
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
 	static AtomicLong requestIds = new AtomicLong();
+	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
 	static HashMap<Long, String> requestSolver = new HashMap<>();
-	static HashMap<String, List<Long>> instanceRequests = new HashMap<>();
+	static ArrayList<InstanceRequest> instanceRequests = new ArrayList<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -105,6 +105,19 @@ public class WebServer {
 		// be aware! infinite pool of threads!
 		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
+						sendHealthChecks();
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		}).start();
 
 		System.out.println(server.getAddress().toString());
 	}
@@ -189,6 +202,66 @@ public class WebServer {
 		return buf.toString();
 	}
 
+	private static void sendHealthChecks(){
+		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
+		ArrayList<String> deadInstances = new ArrayList<>();
+
+		for(Instance instance : aliveInstances){
+			//String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test"; //TODO
+			// Prepare sending healthCheck
+			try {
+				URL myUrl = new URL(url);
+				//Sending healthCheck
+				int i = 0;
+				while(i < 3){
+					HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+
+					con.setRequestMethod("POST");
+					con.setRequestProperty("User-Agent", "Java client");
+					con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+					con.setDoOutput(true);
+
+					DataOutputStream out = new DataOutputStream(con.getOutputStream());
+					out.flush();
+					out.close();
+
+					// Receive response from Solver Instance
+					if(con.getResponseCode() == 200){ //UP
+						con.disconnect();
+						break;
+					}
+					i++;
+					con.disconnect();
+				}
+
+				if(i == 3){
+					aliveInstances.remove(instance);
+					deadInstances.add(instance.getInstanceId());
+				}
+
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
+
+		for(String instance : deadInstances){
+			removeRequests(instance.getInstanceId());
+		}
+	}
+
+	private static void removeRequests(String instanceId){
+		InstanceRequest instanceRequest = instanceRequests.get(instanceId);
+		for(int i = 0; i!= instanceRequest.getRequestIds().size(); i++){
+			sendRequest(instanceRequest.getQueries().get(i), instanceRequest.getBodies().get(i)); // Attribute an instance this request
+		}
+		instanceRequest.getQueries().clear();
+		instanceRequest.getRequestIds().clear();
+		instanceRequest.getBodies().clear();
+	}
+
+	private static void sendRequest(String query, String body){
+		
+	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
 		Estimator estimator;
@@ -258,6 +331,16 @@ public class WebServer {
 	}
 
 	static class SudokuHandler implements HttpHandler {
+
+		public boolean instanceExists(String instanceId){
+			for(InstanceRequest instanceRequest : instanceRequests){
+				if(instanceRequest.getInstanceId().equals(instanceId))
+					return true;
+			}
+			return false;
+		}
+
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 
@@ -291,7 +374,8 @@ public class WebServer {
 				}
 			}
 			newArgs.add("-b");
-			newArgs.add(parseRequestBody(t.getRequestBody()));
+			String body = parseRequestBody(t.getRequestBody());
+			newArgs.add(body);
 
 			// newArgs.add("-d");
 
@@ -329,9 +413,15 @@ public class WebServer {
 
 						String instanceURL = "127.0.0.1";
 						String instancePort = "8500";
-						if(instanceRequests.get(name) == null)
-							instanceRequests.put(name, new ArrayList<Long>());
-                        instanceRequests.get(name).add( (long) requestId);
+
+
+
+						if(!instanceExists(name)){
+							InstanceRequest instanceRequest = new InstanceRequest(name);
+						}
+            instanceRequests.getQueries().add((String) query);
+						instanceRequests.getRequestIds().add((long) requestId);
+						instanceRequests.getBodies().add((String) body);
 
 						String url = "http://" + instanceURL + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
 
@@ -360,7 +450,9 @@ public class WebServer {
 						con.disconnect();
 
 
-						instanceRequests.get(name).remove( (long) requestId);
+						instanceRequests.getQueries().remove((String) query);
+						instanceRequests.getRequestIds().remove((long) requestId);
+						instanceRequests.getBodies().remove((String) body);
 
 						// Turn String content into a JSONArray
 						String s = content.toString();
