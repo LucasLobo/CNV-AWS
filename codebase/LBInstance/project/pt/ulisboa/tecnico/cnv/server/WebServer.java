@@ -257,7 +257,7 @@ public class WebServer {
 				}
 
 				if(i == 3){
-					aliveInstances.remove(instance);
+					AutoScaler.reportDead(instance.getInstanceId());
 					deadInstances.add(instance.getInstanceId());
 				}
 
