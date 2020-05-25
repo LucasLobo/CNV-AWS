@@ -307,6 +307,11 @@ public class AutoScaler {
 		return readyInstances;
 	}
 
+	public static final void reportDead(String instanceId) {
+		readyInstances.remove(instanceId);
+		dropInstance(instanceId);
+	}
+
 	public static void setHasRequests(String instanceId, boolean toggle) {
 		hasRequests.put(instanceId, toggle);
 	}
