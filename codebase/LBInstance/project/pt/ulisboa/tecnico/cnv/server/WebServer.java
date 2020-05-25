@@ -89,6 +89,7 @@ public class WebServer {
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
 	static HashMap<Long, String> requestSolver = new HashMap<>();
+	static HashMap<String, List<long>> instanceRequests = new HashMap<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -327,6 +328,11 @@ public class WebServer {
 
 						String instanceURL = "127.0.0.1";
 						String instancePort = "8500";
+						if(instanceRequests.get(name) == null)
+							instanceRequests.put(name, new ArrayList<>());
+
+						instanceRequests.put(name, instanceRequests.get(name).add(requestId));
+
 						String url = "http://" + instanceURL + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
 
 						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
@@ -352,6 +358,8 @@ public class WebServer {
 						}
 						in.close();
 						con.disconnect();
+
+						instanceRequests.put(name, instanceRequests.get(name).remove(requestId));
 
 						// Turn String content into a JSONArray
 						String s = content.toString();
