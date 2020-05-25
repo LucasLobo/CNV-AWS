@@ -110,7 +110,7 @@ public class WebServer {
 		System.out.println(server.getAddress().toString());
 	}
 
-	private static startAutoScaler() {
+	private static void startAutoScaler() {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
