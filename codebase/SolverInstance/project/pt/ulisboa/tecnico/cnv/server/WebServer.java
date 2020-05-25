@@ -161,13 +161,16 @@ public class WebServer {
   static class SudokuSolverHandler implements HttpHandler {
     static final int UPDATE_TIME_INTERVAL = 1000;
 
-    int methods;
-    long request_id;
-    boolean finished;
-    int thread_id;
+    HashMap<Integer, Boolean> finished = new HashMap<>();
 
     @Override
     public void handle(final HttpExchange t) throws IOException {
+      final String remote_address = t.getRemoteAddress().getAddress().toString().split("/")[1];
+      final int thread_id = (int) Thread.currentThread().getId();
+      long temp_req_id = -1;
+
+      finished.put(thread_id, false);
+
       // Get the query.
       final String query = t.getRequestURI().getQuery();
       System.out.println("> Query:\t" + query);
@@ -179,16 +182,13 @@ public class WebServer {
       Integer size = -1;
       Integer un = -1;
 
-      finished = false;
-      methods = 0;
-      thread_id = (int) Thread.currentThread().getId();
 
       // Store as if it was a direct call to SolverMain.
       final ArrayList<String> newArgs = new ArrayList<>();
       for (final String p : params) {
         final String[] splitParam = p.split("=");
         if (splitParam[0].equals("req")) {
-          request_id = Long.parseLong(splitParam[1]);
+          temp_req_id = Long.parseLong(splitParam[1]);
         } else {
           newArgs.add("-" + splitParam[0]);
           newArgs.add(splitParam[1]);
@@ -203,28 +203,28 @@ public class WebServer {
         }  
       }
 
+      final long request_id = temp_req_id;
+
       newArgs.add("-b");
       newArgs.add(parseRequestBody(t.getRequestBody()));
 
       // newArgs.add("-d");
 
-      if (!LB_URL.equals("")) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            Thread.sleep(UPDATE_TIME_INTERVAL);
+            while (!finished.get(thread_id)) {
+              int method_progress = MethodCounter.getMethodCount(thread_id);
+              System.out.println(method_progress);
+              sendUpdate(request_id, remote_address, method_progress);
               Thread.sleep(UPDATE_TIME_INTERVAL);
-              while (!finished) {
-                methods = MethodCounter.getMethodCount(thread_id);
-                System.out.println(methods);
-                sendUpdate(request_id, methods);
-                Thread.sleep(UPDATE_TIME_INTERVAL);
-              }
-            } catch (InterruptedException e) {
             }
+          } catch (InterruptedException e) {
           }
-        }).start();
-      }
+        }
+      }).start();
 
       final String[] args = newArgs.toArray(new String[0]);
       // Get user-provided flags.
@@ -237,9 +237,10 @@ public class WebServer {
       // Solve sudoku puzzle
       JSONArray solution = s.solveSudoku();
       System.out.println("Thread id = " + Thread.currentThread().getId());
-      methods = MethodCounter.getMethodCount(thread_id);
-      finished = true;
-      System.out.println("Number of methods were: " + methods);
+      int final_methods = MethodCounter.getMethodCount(thread_id);
+      finished.put(thread_id, true);
+      sendUpdate(request_id, remote_address, final_methods);
+      System.out.println("Number of methods were: " + final_methods);
 
       // Send response to browser.
       final Headers hdrs = t.getResponseHeaders();
@@ -261,12 +262,12 @@ public class WebServer {
       os.close();
       System.out.println("> Sent response to " + t.getRemoteAddress().toString());
       if (!solver.equals("undefined") && size != -1 && un != -1)
-        saveResultDB(request_id, solver, size, un, methods);
+        saveResultDB(request_id, solver, size, un, final_methods);
     }
 
-    private static void sendUpdate(long request_id, int methods) {
+    private static void sendUpdate(long request_id, String remote_address, int methods) {
       String query = "r=" + request_id + "&" + "m=" + methods;
-      String url = "http://" + LB_URL + ":" + LB_port + "/update?" + query;
+      String url = "http://" + remote_address + ":" + LB_port + "/update?" + query;
       System.out.println(">>> " + url);
       try {
         URL myUrl = new URL(url);

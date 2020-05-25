@@ -80,7 +80,6 @@ public class WebServer {
 	static EstimatorBFS estimatorBFS = new EstimatorBFS();
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
-	private static HttpURLConnection con;
 	static AtomicLong requestIds = new AtomicLong();
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
@@ -222,7 +221,7 @@ public class WebServer {
 			final String query = t.getRequestURI().getQuery();
 			final String[] params = query.split("&");
 
-			System.out.println(query);
+			// System.out.println(query);
 			Long requestId = -1L;
 			Integer methods = -1;
 
@@ -323,7 +322,7 @@ public class WebServer {
 						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
 						URL myurl = new URL(url);
 
-						con = (HttpURLConnection) myurl.openConnection();
+						HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
 						con.setDoOutput(true);
 						con.setRequestMethod("POST");
 						con.setRequestProperty("User-Agent", "Java client");
