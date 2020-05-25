@@ -46,14 +46,14 @@ import java.text.SimpleDateFormat;
 
 public class WebServer {
 
-  public static String LB_port = "8000";
+  public static String LB_port = "80";
   static AmazonDynamoDB dynamoDB;
   static String tableName = "request-cost-table";
 
   public static void main(final String[] args) throws Exception {
 
     init();
-    final HttpServer server = HttpServer.create(new InetSocketAddress(8500), 0);
+    final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
     server.createContext("/test", new HealthCheckHandler());
     server.createContext("/sudoku", new SudokuSolverHandler());
