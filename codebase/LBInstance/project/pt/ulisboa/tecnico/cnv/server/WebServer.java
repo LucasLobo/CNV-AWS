@@ -89,6 +89,9 @@ public class WebServer {
 	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
+	static final String LB_Port = "8000";
+	static final String LB_PUBLIC_DNS = "";
+
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
@@ -279,7 +282,24 @@ public class WebServer {
 	}
 
 	private static void sendRequest(String query, String body){
+		try{
+			String url = "http://" + LB_PUBLIC_DNS + ":" + LB_port + "/sudoku?" + query;
+			URL myUrl = new URL(url);
+			byte[] postData = body.getBytes(StandardCharsets.UTF_8);
 
+			HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
+			con.setDoOutput(true);
+			con.setRequestMethod("POST");
+			con.setRequestProperty("User-Agent", "Java client");
+			con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
+			DataOutputStream out = new DataOutputStream(con.getOutputStream());
+			out.write(postData);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		}
 	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
