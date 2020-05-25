@@ -46,15 +46,13 @@ import java.text.SimpleDateFormat;
 
 public class WebServer {
 
-  public static String LB_URL = "127.0.0.1";
   public static String LB_port = "8000";
   static AmazonDynamoDB dynamoDB;
-  static String tableName;
+  static String tableName = "request-cost-table";
 
   public static void main(final String[] args) throws Exception {
 
-    createMSS();
-
+    init();
     final HttpServer server = HttpServer.create(new InetSocketAddress(8500), 0);
 
     server.createContext("/test", new HealthCheckHandler());
@@ -86,8 +84,7 @@ public class WebServer {
     return buf.toString();
   }
 
-  private static void createMSS() {
-
+  private static void init() {
     ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
     try {
       credentialsProvider.getCredentials();
@@ -98,41 +95,6 @@ public class WebServer {
     }
     dynamoDB = AmazonDynamoDBClientBuilder.standard().withCredentials(credentialsProvider).withRegion("us-east-1")
         .build();
-
-    try {
-      tableName = "request-cost-table";
-
-      // Create a table with a primary hash key named 'name', which holds a string
-      CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
-          .withKeySchema(new KeySchemaElement().withAttributeName("request_id").withKeyType(KeyType.HASH))
-          .withAttributeDefinitions(
-              new AttributeDefinition().withAttributeName("request_id").withAttributeType(ScalarAttributeType.N))
-          .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
-
-      // Create table if it does not exist yet
-      TableUtils.createTableIfNotExists(dynamoDB, createTableRequest);
-      // wait for the table to move into ACTIVE state
-      try {
-        TableUtils.waitUntilActive(dynamoDB, tableName);
-      } catch (InterruptedException e) {
-        System.out.println("Caught an InterruptedException");
-        System.out.println("Error Message: " + e.getMessage());
-      }
-
-    } catch (AmazonServiceException ase) {
-      System.out.println("Caught an AmazonServiceException, which means your request made it "
-          + "to AWS, but was rejected with an error response for some reason.");
-      System.out.println("Error Message:    " + ase.getMessage());
-      System.out.println("HTTP Status Code: " + ase.getStatusCode());
-      System.out.println("AWS Error Code:   " + ase.getErrorCode());
-      System.out.println("Error Type:       " + ase.getErrorType());
-      System.out.println("Request ID:       " + ase.getRequestId());
-    } catch (AmazonClientException ace) {
-      System.out.println("Caught an AmazonClientException, which means the client encountered "
-          + "a serious internal problem while trying to communicate with AWS, "
-          + "such as not being able to access the network.");
-      System.out.println("Error Message: " + ace.getMessage());
-    }
   }
 
   private static void saveResultDB(long request_id, String solver, int size, int un, int cost) {
@@ -217,7 +179,7 @@ public class WebServer {
             Thread.sleep(UPDATE_TIME_INTERVAL);
             while (!finished.get(thread_id)) {
               int method_progress = MethodCounter.getMethodCount(thread_id);
-              System.out.println(method_progress);
+              // System.out.println(method_progress);
               sendUpdate(request_id, remote_address, method_progress);
               Thread.sleep(UPDATE_TIME_INTERVAL);
             }
@@ -236,11 +198,11 @@ public class WebServer {
       MethodCounter.resetVar();
       // Solve sudoku puzzle
       JSONArray solution = s.solveSudoku();
-      System.out.println("Thread id = " + Thread.currentThread().getId());
+      // System.out.println("Thread id = " + Thread.currentThread().getId());
       int final_methods = MethodCounter.getMethodCount(thread_id);
       finished.put(thread_id, true);
       sendUpdate(request_id, remote_address, final_methods);
-      System.out.println("Number of methods were: " + final_methods);
+      // System.out.println("Number of methods were: " + final_methods);
 
       // Send response to browser.
       final Headers hdrs = t.getResponseHeaders();
@@ -268,7 +230,7 @@ public class WebServer {
     private static void sendUpdate(long request_id, String remote_address, int methods) {
       String query = "r=" + request_id + "&" + "m=" + methods;
       String url = "http://" + remote_address + ":" + LB_port + "/update?" + query;
-      System.out.println(">>> " + url);
+      // System.out.println(">>> " + url);
       try {
         URL myUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
