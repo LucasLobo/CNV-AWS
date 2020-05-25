@@ -80,8 +80,11 @@ public class WebServer {
 	static EstimatorBFS estimatorBFS = new EstimatorBFS();
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
-	private static HttpURLConnection con;
 	static AtomicLong requestIds = new AtomicLong();
+
+	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
+	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
+	static HashMap<Long, String> requestSolver = new HashMap<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -185,11 +188,11 @@ public class WebServer {
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
 		Estimator estimator;
-		if (solver == "BFS") {
+		if (solver.equals("BFS")) {
 			estimator = estimatorBFS;
-		} else if (solver == "DLX") {
+		} else if (solver.equals("DLX")) {
 			estimator = estimatorDLX;
-		} else if (solver == "CP") {
+		} else if (solver.equals("CP")) {
 			estimator = estimatorCP;
 		} else {
 			return -1;
@@ -208,6 +211,20 @@ public class WebServer {
 
   }
 
+	private static Integer estimateCostByMethodNumber(String solver, Integer methods) {
+		Estimator estimator;
+		if (solver.equals("BFS")) {
+			estimator = estimatorBFS;
+		} else if (solver.equals("DLX")) {
+			estimator = estimatorDLX;
+		} else if (solver.equals("CP")) {
+			estimator = estimatorCP;
+		} else {
+			return -1;
+		}
+		return estimator.transform(methods);
+	}
+
 	static class ProgressChecksHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -215,18 +232,20 @@ public class WebServer {
 			final String query = t.getRequestURI().getQuery();
 			final String[] params = query.split("&");
 
-			System.out.println(query);
-			Integer requestId = -1;
-			Integer cost = -1;
+			// System.out.println(query);
+			Long requestId = -1L;
+			Integer methods = -1;
 
 			for (final String p : params) {
 				final String[] splitParam = p.split("=");
 				if (splitParam[0].equals("r")) {
-					requestId = Integer.valueOf(splitParam[1]);
-				} else if (splitParam[0].equals("c")) {
-					cost = Integer.valueOf(splitParam[1]);
+					requestId = Long.valueOf(splitParam[1]);
+				} else if (splitParam[0].equals("m")) {
+					methods = Integer.valueOf(splitParam[1]);
 				}
 			}
+
+			requestMethodProgress.put(requestId, methods);
 
 			String response = "";
 			t.sendResponseHeaders(200, response.length());
@@ -275,7 +294,10 @@ public class WebServer {
 
 			// newArgs.add("-d");
 
-			Integer cost = estimateRequestCost(solver, size, un);
+			Integer estimatedCost = estimateRequestCost(solver, size, un);
+			requestCostEstimation.put(requestId, estimatedCost);
+			requestSolver.put(requestId, solver);
+			System.out.println("Estimated cost: " + estimatedCost);
 
 			try {
 				DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();
@@ -311,7 +333,7 @@ public class WebServer {
 						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
 						URL myurl = new URL(url);
 
-						con = (HttpURLConnection) myurl.openConnection();
+						HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
 						con.setDoOutput(true);
 						con.setRequestMethod("POST");
 						con.setRequestProperty("User-Agent", "Java client");
@@ -346,9 +368,6 @@ public class WebServer {
 								my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
 							}
 						}
-						// for (int i = 0; i < my_matrics.length; i++)
-						// 	for (int j = 0; j < my_matrics[i].length; j++)
-						// 		System.out.print(my_matrics[i][j] + " ");
 
 						JSONArray solution = new JSONArray();
 						for(int lin = 0; lin<Integer.parseInt(newArgs.get(5)); lin++){
@@ -359,6 +378,8 @@ public class WebServer {
 							}
 							solution.put(line);
 						}
+
+						System.out.println((requestMethodProgress.get(requestId)) + ":" + estimateCostByMethodNumber(solver, requestMethodProgress.get(requestId)));
 
 						// Send response to browser
 						final Headers hdrs = t.getResponseHeaders();
@@ -383,8 +404,11 @@ public class WebServer {
 				System.out.println("Reponse Status Code: " + ase.getStatusCode());
 				System.out.println("Error Code: " + ase.getErrorCode());
 				System.out.println("Request ID: " + ase.getRequestId());
-
 			}
+
+			requestCostEstimation.remove(requestId);
+			requestSolver.remove(requestId);
+			requestMethodProgress.remove(requestId);
 		}
 	}
 }

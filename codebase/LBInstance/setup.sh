@@ -12,8 +12,8 @@ export _JAVA_OPTIONS="-XX:-UseSplitVerifier "$_JAVA_OPTIONS
 
 # CLASSPATH EC2-USER
 export CLASSPATH="/home/ec2-user/project"
-export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.11.787/lib/aws-java-sdk-1.11.787.jar"
-export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.11.787/third-party/lib/*"
+export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.11.789/lib/aws-java-sdk-1.11.789.jar"
+export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.11.789/third-party/lib/*"
 
 # CLASSPATH RNL-VM
 export CLASSPATH="/home/test/cnv-project19-20/codebase/LBInstance/project"
