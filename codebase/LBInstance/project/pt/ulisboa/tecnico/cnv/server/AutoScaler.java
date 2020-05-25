@@ -180,8 +180,7 @@ public class AutoScaler {
 				}
 			}
 		}		
-
-		int i = 6;
+		
 		try {
 			while (true) {
 				try {
