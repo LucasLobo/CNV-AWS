@@ -573,9 +573,7 @@ public class WebServer {
                 osw.close();
                 os.close();
                 System.out.println("> Sent response to " + t.getRemoteAddress().toString());
-            }
-		
-			} catch (AmazonServiceException ase) {
+            } catch (AmazonServiceException ase) {
 				System.out.println("Caught Exception: " + ase.getMessage());
 				System.out.println("Reponse Status Code: " + ase.getStatusCode());
 				System.out.println("Error Code: " + ase.getErrorCode());
