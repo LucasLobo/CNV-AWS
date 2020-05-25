@@ -88,6 +88,7 @@ public class WebServer {
 	static AtomicLong requestIds = new AtomicLong();
 	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
+	static final String instancePort = "8000";
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
@@ -219,8 +220,13 @@ public class WebServer {
 		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
 		ArrayList<String> deadInstances = new ArrayList<>();
 
+		for (Map.Entry<String, Instance> entry : AutoScaler.readyInstances.entrySet()) {
+			Instance instance = entry.getValue();
+			aliveInstances.add(instance);
+		}
+
 		for(Instance instance : aliveInstances){
-			//String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test"; //TODO
+			String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test"; //TODO
 			// Prepare sending healthCheck
 			try {
 				URL myUrl = new URL(url);
