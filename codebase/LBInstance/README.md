@@ -15,7 +15,7 @@ home
 In the ec2-user/home directory:
 1) Download the AWS Java SDK from http://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip  and unzip it (wget recommended).
 
-2) Download Java 7 and setup environment variable. ```export _JAVA_OPTIONS="-XX:-UseSplitVerifier "$_JAVA_OPTIONS```
+2) Download Java 7 and setup environment variables. ```export _JAVA_OPTIONS="-XX:-UseSplitVerifier "$_JAVA_OPTIONS```
 
 3) Point your Java classpath to the AWS SDK and to the third party libs included:
   
@@ -42,6 +42,11 @@ Take note: the file must follow this exact syntax.
         export CLASSPATH="/home/ec2-user/project"
         export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.XX.YYY/lib/aws-java-sdk-1.XX.YYY.jar"
         export CLASSPATH="$CLASSPATH:/home/ec2-user/aws-java-sdk-1.XX.YYY/third-party/lib/*"
+
+        # IF RNL
+        export CLASSPATH="/home/test/cnv-project19-20/codebase/LBInstance/project"
+        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.XX.YYY/lib/aws-java-sdk-1.11.787.jar"
+        export CLASSPATH="$CLASSPATH:/home/test/aws-java-sdk-1.XX.YYY/third-party/lib/*"
 
 
 ## To run the Web Server

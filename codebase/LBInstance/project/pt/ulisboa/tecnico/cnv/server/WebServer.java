@@ -39,6 +39,8 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
@@ -77,6 +79,7 @@ public class WebServer {
 
 	static AmazonDynamoDB dynamoDB;
 	static AmazonEC2 ec2;
+	static String tableName = "request-cost-table";
 	static EstimatorBFS estimatorBFS = new EstimatorBFS();
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
@@ -93,7 +96,7 @@ public class WebServer {
 
 		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
-		server.createContext("/sudoku", new MyHandler());
+		server.createContext("/sudoku", new SudokuHandler());
 		server.createContext("/update", new ProgressChecksHandler());
 
 		// be aware! infinite pool of threads!
@@ -117,8 +120,6 @@ public class WebServer {
 				.build();
 
 		try {
-			String tableName = "request-cost-table";
-
 			// Create a table with a primary hash key named 'name', which holds a string
 			CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
 					.withKeySchema(new KeySchemaElement().withAttributeName("request_id").withKeyType(KeyType.HASH))
@@ -200,16 +201,15 @@ public class WebServer {
 		return estimator.estimate(size, un);
 	}
 
-	private static List<Map<String,AttributeValue>> fetchEntries(int id){
-    ArrayList<Item> itemList = new ArrayList<>();
-    Table table = dynamoDB.getTable(tableName);
-    Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
-    expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
-    ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
-    ScanResult result = dynamoDB.scan(scanRequest);
-    return result.getItems();
-
-  }
+	private static List<Map<String,AttributeValue>> fetchEntriesHigherThan(int id) {
+		// ArrayList<Item> itemList = new ArrayList<>();
+		// Table table = dynamoDB.getTable(tableName);
+		// Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+		// expressionAttributeValues.put(":val", new AttributeValue().withN(String.valueOf(id)));
+		// ScanRequest scanRequest = new ScanRequest().withTableName(tableName).withFilterExpression("request_id > :val").withExpressionAttributeValues(expressionAttributeValues);
+		// ScanResult result = dynamoDB.scan(scanRequest);
+    	// return result.getItems();
+  	}
 
 	private static Integer estimateCostByMethodNumber(String solver, Integer methods) {
 		Estimator estimator;
@@ -256,7 +256,7 @@ public class WebServer {
 
 	}
 
-	static class MyHandler implements HttpHandler {
+	static class SudokuHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 
