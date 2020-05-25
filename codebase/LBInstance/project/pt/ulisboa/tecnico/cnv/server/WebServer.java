@@ -308,28 +308,24 @@ public class WebServer {
 		int highest_load = Integer.MAX_VALUE;
 		Instance chosen_instance;
 		for (Instance instance : instances) {
-				String state = instance.getState().getName();
-				if (state.equals("running") && instance.getImageId().equals(SOLVER_IMAGE_ID)){
-					int instance_load = 0;
-					for (InstanceRequest request:instanceRequests){
-						if(request.getInstanceId() == instance.getInstanceId()){
-							List<Long> requests = request.getRequestIds();
-						}
-
-					}
-					for (Long request_id:requests){
-						int estimated_cost = requestCostEstimation.get(request_id);
-						int methods = requestMethodProgress.get(request_id);
-						String solver = requestSolver.get(request_id);
-						int request_load = estimated_cost - estimateCostByMethodNumber(solver, methods);
-						instance_load += request_load;
-					}
-					if (instance_load < highest_load) {
-						highest_load = instance_load;
-						chosen_instance = instance;
-					}
-
+			int instance_load = 0;
+			for (InstanceRequest request:instanceRequests){
+				if(request.getInstanceId() == instance.getInstanceId()){
+					List<Long> requests = request.getRequestIds();
 				}
+
+			}
+			for (Long request_id:requests){
+				int estimated_cost = requestCostEstimation.get(request_id);
+				int methods = requestMethodProgress.get(request_id);
+				String solver = requestSolver.get(request_id);
+				int request_load = estimated_cost - estimateCostByMethodNumber(solver, methods);
+				instance_load += request_load;
+			}
+			if (instance_load < highest_load) {
+				highest_load = instance_load;
+				chosen_instance = instance;
+			}
 		}
 		return chosen_instance;	
 	}
@@ -504,7 +500,9 @@ public class WebServer {
 
 				System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
 				
-                Instance chosen_instance = choose_best_instance(instances);
+				Instance chosen_instance = choose_best_instance(instances);
+				
+				AutoScaler.setHasRequests(instance.getInstanceId(), true);
 
                 // TODO
                 // Saves information about the request in a global structure
@@ -550,7 +548,16 @@ public class WebServer {
 
                 instanceRequests.getQueries().remove((String) query);
                 instanceRequests.getRequestIds().remove((long) requestId);
-                instanceRequests.getBodies().remove((String) body);
+				instanceRequests.getBodies().remove((String) body);
+				
+				boolean hasRequests = false;
+				for (InstanceRequest request: instanceRequests){
+					if(request.getInstanceId() == instance.getInstanceId()){
+						hasRequests = true;
+					}
+				}
+
+				AutoScaler.setHasRequests(instance.getInstanceId(), hasRequests);
 
                 // Turn String content into a JSONArray
                 String s = content.toString();
