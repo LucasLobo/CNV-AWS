@@ -45,17 +45,18 @@ public class AutoScaler {
 	static final String REGION = "us-east-1";
 
 	static final int MIN_INSTANCE_COUNT = 1;
+	static final int MAX_INSTANCE_COUNT = 10;
 
-	static final double MIN_CPU_VALUE = 0.20;
-	static final double MAX_CPU_VALUE = 0.60;
+	static final double MIN_CPU_VALUE = 20;
+	static final double MAX_CPU_VALUE = 60;
 
 	static final int TIME_INTERVAL = 10 * 1000;
 	static final int GRACE_PERIOD = 30 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
-	static final String SOLVER_IMAGE_ID = "ami-03977bf12d0cbdfe7";
-	static final String KEY_NAME = "cnv_project";
-	static final String SECURITY_GROUP_NAME = "ssh-http-8000";
+	static final String SOLVER_IMAGE_ID = "ami-0b8cc586bf5eab94f";
+	static final String KEY_NAME = "CNV-aws";
+	static final String SECURITY_GROUP_NAME = "CNV-Vanilla";
 
 	private static Map<String, Integer> remaningGracePeriodInstance = new HashMap<>();
 	private static Map<String, Instance> startingInstances = new HashMap<>();
@@ -99,21 +100,23 @@ public class AutoScaler {
 	}
 
 	private static void launchInstance() {
-		System.out.println("Starting a new instance.");
-		RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
-		runInstancesRequest.withImageId(SOLVER_IMAGE_ID)
-							.withInstanceType("t2.micro")
-							.withMinCount(1)
-							.withMaxCount(1)
-							.withKeyName(KEY_NAME)
-							.withSecurityGroups(SECURITY_GROUP_NAME);
-
-		RunInstancesResult runInstancesResult = ec2.runInstances(runInstancesRequest);
-		Instance instance = runInstancesResult.getReservation().getInstances().get(0);
-		String instanceId = instance.getInstanceId();
-		startingInstances.put(instanceId, instance);
-		remaningGracePeriodInstance.put(instanceId, GRACE_PERIOD);
-		hasRequests.put(instanceId, false);
+		if (readyInstances.size() + startingInstances.size() < MAX_INSTANCE_COUNT) {
+			System.out.println("Starting a new instance.");
+			RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
+			runInstancesRequest.withImageId(SOLVER_IMAGE_ID)
+								.withInstanceType("t2.micro")
+								.withMinCount(1)
+								.withMaxCount(1)
+								.withKeyName(KEY_NAME)
+								.withSecurityGroups(SECURITY_GROUP_NAME);
+	
+			RunInstancesResult runInstancesResult = ec2.runInstances(runInstancesRequest);
+			Instance instance = runInstancesResult.getReservation().getInstances().get(0);
+			String instanceId = instance.getInstanceId();
+			startingInstances.put(instanceId, instance);
+			remaningGracePeriodInstance.put(instanceId, GRACE_PERIOD);
+			hasRequests.put(instanceId, false);
+		}
 	}
 
 	private static void dropInstance(String instanceId) {
@@ -185,6 +188,7 @@ public class AutoScaler {
 			while (true) {
 				try {
 
+					System.out.println();
 					System.out.println("You have " + readyInstances.size() + " solver instance(s) ready.");
 					System.out.println("You have " + startingInstances.size() + " solver instance(s) being launched.");
 					System.out.println("You have " + instancesToShutDown.size() + " solver instance(s) waiting to shut down.");
@@ -228,6 +232,8 @@ public class AutoScaler {
 						List<Datapoint> datapoints = getMetricStatisticsResult.getDatapoints();
 						Integer size = datapoints.size();
 
+						// CASE WHERE MACHINE IS NOT ALIVE
+
 						if (size == 0) continue; // means the instance was just created
 						else if (size == 1) {
 							Double avg = datapoints.get(0).getAverage();
@@ -242,7 +248,6 @@ public class AutoScaler {
 							}
 
 						} else if (size == 2) {
-
 							Double avg1 = datapoints.get(0).getAverage();
 							Double avg2 = datapoints.get(1).getAverage();
 							if (avg1 > MAX_CPU_VALUE && avg2 > MAX_CPU_VALUE) {
@@ -270,13 +275,13 @@ public class AutoScaler {
 								break;
 							}
 						}
-
-						if (toStart) {
-							launchInstance();
-						} else if (toShutDown) {
-							addToShutDownList(toShutDownInstanceId, toShutDownInstance);
-						}
-					}					
+					}
+					
+					if (toStart) {
+						launchInstance();
+					} else if (toShutDown) {
+						addToShutDownList(toShutDownInstanceId, toShutDownInstance);
+					}
 
 				} catch (AmazonServiceException ase) {
 					System.out.println("Caught Exception: " + ase.getMessage());
