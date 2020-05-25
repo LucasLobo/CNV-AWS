@@ -1,4 +1,5 @@
 package pt.ulisboa.tecnico.cnv.server;
+package pt.ulisboa.tecnico.cnv.server;
 
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
@@ -89,7 +90,7 @@ public class WebServer {
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
 	static HashMap<Long, String> requestSolver = new HashMap<>();
-	static HashMap<String, List<long>> instanceRequests = new HashMap<>();
+	static HashMap<String, List<Long>> instanceRequests = new HashMap<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -329,9 +330,8 @@ public class WebServer {
 						String instanceURL = "127.0.0.1";
 						String instancePort = "8500";
 						if(instanceRequests.get(name) == null)
-							instanceRequests.put(name, new ArrayList<>());
-
-						instanceRequests.put(name, instanceRequests.get(name).add(requestId));
+							instanceRequests.put(name, new ArrayList<Long>());
+                        instanceRequests.get(name).add( (long) requestId);
 
 						String url = "http://" + instanceURL + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
 
@@ -359,7 +359,8 @@ public class WebServer {
 						in.close();
 						con.disconnect();
 
-						instanceRequests.put(name, instanceRequests.get(name).remove(requestId));
+
+						instanceRequests.get(name).remove( (long) requestId);
 
 						// Turn String content into a JSONArray
 						String s = content.toString();
