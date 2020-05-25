@@ -90,9 +90,6 @@ public class WebServer {
 	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
-	static final String LB_Port = "8000";
-	static final String LB_PUBLIC_DNS = "";
-
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
@@ -258,7 +255,7 @@ public class WebServer {
 				}
 
 				if(i == 3){
-					AutoScaler.reportDead(instance.getInstanceId());
+					aliveInstances.remove(instance);
 					deadInstances.add(instance.getInstanceId());
 				}
 
@@ -283,24 +280,37 @@ public class WebServer {
 	}
 
 	private static void sendRequest(String query, String body){
-		try{
-			String url = "http://" + LB_PUBLIC_DNS + ":" + LB_port + "/sudoku?" + query;
-			URL myUrl = new URL(url);
-			byte[] postData = body.getBytes(StandardCharsets.UTF_8);
 
-			HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
-			con.setDoOutput(true);
-			con.setRequestMethod("POST");
-			con.setRequestProperty("User-Agent", "Java client");
-			con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
-			DataOutputStream out = new DataOutputStream(con.getOutputStream());
-			out.write(postData);
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+	}
+
+    private static Instance choose_best_instance(Set<Instance> instances) {
+		int highest_load = Integer.MAX_VALUE;
+		Instance chosen_instance;
+		for (Instance instance : instances) {
+				String state = instance.getState().getName();
+				if (state.equals("running") && instance.getImageId().equals(SOLVER_IMAGE_ID)){
+					int instance_load = 0;
+					for (InstanceRequest request:instanceRequests){
+						if(request.getInstanceId() == instance.getInstanceId()){
+							List<Long> requests = request.getRequestIds();
+						}
+
+					}
+					for (Long request_id:requests){
+						int estimated_cost = requestCostEstimation.get(request_id);
+						int methods = requestMethodProgress.get(request_id);
+						String solver = requestSolver.get(request_id);
+						int request_load = estimated_cost - estimateCostByMethodNumber(solver, methods);
+						instance_load += request_load;
+					}
+					if (instance_load < highest_load) {
+						highest_load = instance_load;
+						chosen_instance = instance;
+					}
+
+				}
 		}
+		return chosen_instance;	
 	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
@@ -469,120 +479,102 @@ public class WebServer {
 			System.out.println("Estimated cost: " + estimatedCost);
 
 			try {
-				DescribeInstancesResult describeInstancesRequest = ec2.describeInstances();
-				List<Reservation> reservations = describeInstancesRequest.getReservations();
-				Set<Instance> instances = new HashSet<Instance>();
-				for (Reservation reservation : reservations) {
-					instances.addAll(reservation.getInstances());
-				}
+				Set<Instance> instances = AutoScaler.getReadyInstances().values();
 
 				System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
-				for (Instance instance : instances) {
-					String name = instance.getInstanceId();
-					String state = instance.getState().getName();
-					// Selecting only from running instances
-					if (true || state.equals("running")) {
-						// TODO
-						// Uses information on the global structure to decide to which instance it will send the request
-						// When doing this TODO, delete the next line
-						// chosen_instance, as it is, is the first running instance found
-						Instance chosen_instance = instance;
+				
+                Instance chosen_instance = choose_best_instance(instances);
 
-						// TODO
-						// Saves information about the request in a global structure
+                // TODO
+                // Saves information about the request in a global structure
 
-						// Send incoming request to the chosen Solver Instance
-						// chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
-						// next line is for testing purposes, insert public DNS of the solver instance you want to test
-
-						String instanceURL = "127.0.0.1";
-						String instancePort = "8500";
+                // Send incoming request to the chosen Solver Instance
+                // chosen_instance.getPublicDnsName() + ":8000/sudoku?" + query;
+                // next line is for testing purposes, insert public DNS of the solver instance you want to test
 
 
+                if(!instanceExists(name)){
+                    InstanceRequest instanceRequest = new InstanceRequest(name);
+                }
+                instanceRequests.getQueries().add((String) query);
+                instanceRequests.getRequestIds().add((long) requestId);
+                instanceRequests.getBodies().add((String) body);
 
-						if(!instanceExists(name)){
-							InstanceRequest instanceRequest = new InstanceRequest(name);
-						}
-            instanceRequests.getQueries().add((String) query);
-						instanceRequests.getRequestIds().add((long) requestId);
-						instanceRequests.getBodies().add((String) body);
+                String url = "http://" + chosen_instance.getPublicDnsName() + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
 
-						String url = "http://" + instanceURL + ":" + instancePort + "/sudoku?" + query + requestIdQuery;
+                byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
+                URL myurl = new URL(url);
 
-						byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
-						URL myurl = new URL(url);
+                HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
+                con.setDoOutput(true);
+                con.setRequestMethod("POST");
+                con.setRequestProperty("User-Agent", "Java client");
+                con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
+                DataOutputStream out = new DataOutputStream(con.getOutputStream());
+                out.write(postData);
+                out.flush();
+                out.close();
 
-						HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
-						con.setDoOutput(true);
-						con.setRequestMethod("POST");
-						con.setRequestProperty("User-Agent", "Java client");
-						con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
-						DataOutputStream out = new DataOutputStream(con.getOutputStream());
-						out.write(postData);
-						out.flush();
-						out.close();
-
-						// Receive response from Solver Instance
-						int status = con.getResponseCode();
-						BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-						String inputLine;
-						StringBuffer content = new StringBuffer();
-						while ((inputLine = in.readLine()) != null) {
-							content.append(inputLine);
-						}
-						in.close();
-						con.disconnect();
+                // Receive response from Solver Instance
+                int status = con.getResponseCode();
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer content = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                con.disconnect();
 
 
-						instanceRequests.getQueries().remove((String) query);
-						instanceRequests.getRequestIds().remove((long) requestId);
-						instanceRequests.getBodies().remove((String) body);
+                instanceRequests.getQueries().remove((String) query);
+                instanceRequests.getRequestIds().remove((long) requestId);
+                instanceRequests.getBodies().remove((String) body);
 
-						// Turn String content into a JSONArray
-						String s = content.toString();
-						s=s.replace("[","");//replacing all [ to ""
-						s=s.substring(0,s.length()-2);//ignoring last two ]]
-						String s1[]=s.split("],");//separating all by "],"
-						int my_matrics[][] = new int[s1.length][s1.length];//declaring two dimensional matrix for input
+                // Turn String content into a JSONArray
+                String s = content.toString();
+                s=s.replace("[","");//replacing all [ to ""
+                s=s.substring(0,s.length()-2);//ignoring last two ]]
+                String s1[]=s.split("],");//separating all by "],"
+                int my_matrics[][] = new int[s1.length][s1.length];//declaring two dimensional matrix for input
 
-						for(int i=0;i<s1.length;i++){
-							s1[i]=s1[i].trim();//ignoring all extra space if the string s1[i] has
-							String single_int[]=s1[i].split(",");//separating integers by ", "
-							for(int j=0;j<single_int.length;j++){
-								my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
-							}
-						}
+                for(int i=0;i<s1.length;i++){
+                    s1[i]=s1[i].trim();//ignoring all extra space if the string s1[i] has
+                    String single_int[]=s1[i].split(",");//separating integers by ", "
+                    for(int j=0;j<single_int.length;j++){
+                        my_matrics[i][j]=Integer.parseInt(single_int[j]);//adding single values
+                    }
+                }
 
-						JSONArray solution = new JSONArray();
-						for(int lin = 0; lin<Integer.parseInt(newArgs.get(5)); lin++){
-							JSONArray line = new JSONArray();
-							for(int col = 0; col<Integer.parseInt(newArgs.get(7)); col++){
-								line.put(my_matrics[lin][col]);
+                JSONArray solution = new JSONArray();
+                for(int lin = 0; lin<Integer.parseInt(newArgs.get(5)); lin++){
+                    JSONArray line = new JSONArray();
+                    for(int col = 0; col<Integer.parseInt(newArgs.get(7)); col++){
+                        line.put(my_matrics[lin][col]);
 
-							}
-							solution.put(line);
-						}
+                    }
+                    solution.put(line);
+                }
 
-						System.out.println((requestMethodProgress.get(requestId)) + ":" + estimateCostByMethodNumber(solver, requestMethodProgress.get(requestId)));
+                System.out.println((requestMethodProgress.get(requestId)) + ":" + estimateCostByMethodNumber(solver, requestMethodProgress.get(requestId)));
 
-						// Send response to browser
-						final Headers hdrs = t.getResponseHeaders();
-						hdrs.add("Content-Type", "application/json");
-						hdrs.add("Access-Control-Allow-Origin", "*");
-						hdrs.add("Access-Control-Allow-Credentials", "true");
-						hdrs.add("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS");
-						hdrs.add("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
-						t.sendResponseHeaders(200, solution.toString().length());
-						final OutputStream os = t.getResponseBody();
-						OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-						osw.write(solution.toString());
-						osw.flush();
-						osw.close();
-						os.close();
-						System.out.println("> Sent response to " + t.getRemoteAddress().toString());
-						break;
-					}
-				}
+                // Send response to browser
+                final Headers hdrs = t.getResponseHeaders();
+                hdrs.add("Content-Type", "application/json");
+                hdrs.add("Access-Control-Allow-Origin", "*");
+                hdrs.add("Access-Control-Allow-Credentials", "true");
+                hdrs.add("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS");
+                hdrs.add("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+                t.sendResponseHeaders(200, solution.toString().length());
+                final OutputStream os = t.getResponseBody();
+                OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                osw.write(solution.toString());
+                osw.flush();
+                osw.close();
+                os.close();
+                System.out.println("> Sent response to " + t.getRemoteAddress().toString());
+            }
+		
 			} catch (AmazonServiceException ase) {
 				System.out.println("Caught Exception: " + ase.getMessage());
 				System.out.println("Reponse Status Code: " + ase.getStatusCode());
