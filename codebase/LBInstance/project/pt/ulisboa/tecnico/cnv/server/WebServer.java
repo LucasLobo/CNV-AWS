@@ -1,10 +1,10 @@
 package pt.ulisboa.tecnico.cnv.server;
-package pt.ulisboa.tecnico.cnv.server;
 
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorDLX;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorCP;
+import pt.ulisboa.tecnico.cnv.server.AutoScaler;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -94,6 +94,7 @@ public class WebServer {
 
 	public static void main(final String[] args) throws Exception {
 
+		startAutoScaler();
 		createMSS();
 		init();
 
@@ -107,6 +108,15 @@ public class WebServer {
 		server.start();
 
 		System.out.println(server.getAddress().toString());
+	}
+
+	private static startAutoScaler() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+			  AutoScaler.startAS();
+			}
+		  }).start();
 	}
 
 	private static void createMSS() {
