@@ -4,6 +4,7 @@ import pt.ulisboa.tecnico.cnv.estimatecomplexity.Estimator;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorBFS;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorDLX;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorCP;
+import pt.ulisboa.tecnico.cnv.estimatecomplexity.LinearRegression;
 import pt.ulisboa.tecnico.cnv.server.AutoScaler;
 
 import com.sun.net.httpserver.Headers;
@@ -85,7 +86,7 @@ public class WebServer {
 	static EstimatorBFS estimatorBFS = new EstimatorBFS();
 	static EstimatorDLX estimatorDLX = new EstimatorDLX();
 	static EstimatorCP estimatorCP = new EstimatorCP();
-	static AtomicLong requestIds = new AtomicLong();
+	static AtomicLong requestIds = new AtomicLong(1L);
 	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
@@ -223,7 +224,7 @@ public class WebServer {
 		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
 		ArrayList<String> deadInstances = new ArrayList<>();
 
-		for (Map.Entry<String, Instance> entry : AutoScaler.readyInstances.entrySet()) {
+		for (Map.Entry<String, Instance> entry : AutoScaler.getReadyInstances().entrySet()) {
 			Instance instance = entry.getValue();
 			aliveInstances.add(instance);
 		}
@@ -361,7 +362,6 @@ public class WebServer {
 						Long lastSaved = lastSavedRequestId.get();
 						Long biggestRequestId = 0L;
 						List<Map<String,AttributeValue>> mss_entries = fetchEntriesHigherThan(lastSaved);
-
 						for (Map<String,AttributeValue> line : mss_entries) {
 							Long requestId = Long.parseLong(line.get("request_id").getN());
 							String solver = line.get("strategy").getS();
@@ -375,7 +375,9 @@ public class WebServer {
 						Thread.sleep(30*1000);
 					}
 				} catch (RuntimeException e) {
+					System.out.println(e);
 				} catch (Exception e) {
+					System.out.println(e);
 				}
 			}
 		}).start();
