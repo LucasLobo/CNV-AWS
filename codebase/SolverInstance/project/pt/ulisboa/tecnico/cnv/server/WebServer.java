@@ -46,6 +46,7 @@ import java.text.SimpleDateFormat;
 
 public class WebServer {
 
+  static final int UPDATE_TIME_INTERVAL = 5000;
   public static String LB_port = "8000";
   static AmazonDynamoDB dynamoDB;
   static String tableName = "request-cost-table";
@@ -121,7 +122,6 @@ public class WebServer {
   }
 
   static class SudokuSolverHandler implements HttpHandler {
-    static final int UPDATE_TIME_INTERVAL = 1000;
 
     HashMap<Integer, Boolean> finished = new HashMap<>();
 
