@@ -54,7 +54,7 @@ public class AutoScaler {
 	static final int GRACE_PERIOD = 30 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
-	static final String SOLVER_IMAGE_ID = "ami-06936937634fbcbe6";
+	static final String SOLVER_IMAGE_ID = "ami-0274e8a8391c43714";
 	static final String KEY_NAME = "project-final";
 	static final String SECURITY_GROUP_NAME = "CNV-Vanilla";
 
@@ -193,6 +193,13 @@ public class AutoScaler {
 					System.out.println("You have " + startingInstances.size() + " solver instance(s) being launched.");
 					System.out.println("You have " + instancesToShutDown.size() + " solver instance(s) waiting to shut down.");
 
+
+					System.out.println("gracePeriod:" + remaningGracePeriodInstance);
+					System.out.println("startingInstances:" + startingInstances.keySet());
+					System.out.println("readyInstances:" + readyInstances.keySet());
+					System.out.println("hasRequests: " + hasRequests);
+					System.out.println("toShutDown: " + instancesToShutDown.keySet());
+
 					if ((readyInstances.size() + startingInstances.size()) < MIN_INSTANCE_COUNT) {
 						launchInstance();
 						continue;
@@ -304,15 +311,20 @@ public class AutoScaler {
 	}
 
 	public static final Map<String, Instance> getReadyInstances() {
+
+		System.out.println("Ready to run:" + readyInstances.keySet());
 		return readyInstances;
 	}
 
 	public static final void reportDead(String instanceId) {
+
+		System.out.println("Dead: " + instanceId);
 		readyInstances.remove(instanceId);
 		dropInstance(instanceId);
 	}
 
 	public static void setHasRequests(String instanceId, boolean toggle) {
+		System.out.println("Has requests: " + instanceId + " - " + toggle);
 		hasRequests.put(instanceId, toggle);
 	}
 
