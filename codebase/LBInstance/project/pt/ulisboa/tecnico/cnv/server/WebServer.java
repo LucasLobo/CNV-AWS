@@ -420,10 +420,10 @@ public class WebServer {
 			final String query = t.getRequestURI().getQuery();
 			final String[] params = query.split("&");
 
-			// System.out.println(query);
 			Long requestId = -1L;
 			Integer methods = -1;
 
+			System.out.println("<<< " + query);
 			for (final String p : params) {
 				final String[] splitParam = p.split("=");
 				if (splitParam[0].equals("r")) {

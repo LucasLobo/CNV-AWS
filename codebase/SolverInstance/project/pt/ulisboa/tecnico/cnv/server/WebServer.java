@@ -179,7 +179,6 @@ public class WebServer {
             Thread.sleep(UPDATE_TIME_INTERVAL);
             while (!finished.get(thread_id)) {
               int method_progress = MethodCounter.getMethodCount(thread_id);
-              // System.out.println(method_progress);
               sendUpdate(request_id, remote_address, method_progress);
               Thread.sleep(UPDATE_TIME_INTERVAL);
             }
@@ -230,7 +229,6 @@ public class WebServer {
     private static void sendUpdate(long request_id, String remote_address, int methods) {
       String query = "r=" + request_id + "&" + "m=" + methods;
       String url = "http://" + remote_address + ":" + LB_port + "/update?" + query;
-      // System.out.println(">>> " + url);
       try {
         URL myUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
