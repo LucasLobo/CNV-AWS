@@ -52,7 +52,7 @@ public class AutoScaler {
 	static final double MAX_CPU_VALUE = 60;
 
 	static final int TIME_INTERVAL = 10 * 1000;
-	static final int GRACE_PERIOD = 30 * 1000;
+	static final int GRACE_PERIOD = 60 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
 	static final String SOLVER_IMAGE_ID = "ami-0274e8a8391c43714";
@@ -149,7 +149,6 @@ public class AutoScaler {
 		for (int i = 0; i < finishedGracePeriodInstances.size(); i++) {
 			String instanceId = finishedGracePeriodInstances.get(i);
 			Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(i);
-			System.out.println(instance);
 
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
