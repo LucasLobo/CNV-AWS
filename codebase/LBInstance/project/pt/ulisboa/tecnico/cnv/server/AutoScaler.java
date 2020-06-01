@@ -144,12 +144,12 @@ public class AutoScaler {
 
 		DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
 		describeInstancesRequest.setInstanceIds(finishedGracePeriodInstances);
-		DescribeInstancesResult describeInstancesResult = ec2.describeInstances();
-
-		
+		DescribeInstancesResult describeInstancesResult = ec2.describeInstances(describeInstancesRequest);
+	
 		for (int i = 0; i < finishedGracePeriodInstances.size(); i++) {
 			String instanceId = finishedGracePeriodInstances.get(i);
 			Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(i);
+			System.out.println(instance);
 
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
