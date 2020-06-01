@@ -141,19 +141,21 @@ public class AutoScaler {
 				finishedGracePeriodInstances.add(instanceId);
 			}
 		}
+		if (finishedGracePeriodInstances.size() == 0) return;
 
 		DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
 		describeInstancesRequest.setInstanceIds(finishedGracePeriodInstances);
 		DescribeInstancesResult describeInstancesResult = ec2.describeInstances(describeInstancesRequest);
-	
+
 		for (int i = 0; i < finishedGracePeriodInstances.size(); i++) {
 			String instanceId = finishedGracePeriodInstances.get(i);
-			Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(i);
+			Instance instance = describeInstancesResult.getReservations().get(i).getInstances().get(0);
 
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
 			readyInstances.put(instanceId, instance);
 		}
+
 	}
 
 	private static void checkShutDownInstances() {

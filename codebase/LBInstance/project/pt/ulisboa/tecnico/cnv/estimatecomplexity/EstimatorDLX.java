@@ -4,7 +4,7 @@ public class EstimatorDLX extends Estimator {
 
 	public EstimatorDLX() {
 		super("DLX",
-				new LinearRegression(0.61f,3608f,100f),
+				new LinearRegression(0.61f,7222f,100f),
 				new LinearRegression(1690.71f, -12737f, 94.80f));
 	}
 

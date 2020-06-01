@@ -103,7 +103,6 @@ public class WebServer {
 
 	public static void main(final String[] args) throws Exception {
 
-		System.out.println("test");
 		startAutoScaler();
 		createMSS();
 		init();
