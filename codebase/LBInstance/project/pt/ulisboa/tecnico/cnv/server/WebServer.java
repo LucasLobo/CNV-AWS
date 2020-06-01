@@ -561,6 +561,7 @@ public class WebServer {
 				// instanceRequests.getRequestIds().remove((long) requestId);
 				// instanceRequests.getBodies().remove((String) body);
 
+				requests.remove(requestId);
 				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), requests.size() != 0);
 
 				// Turn String content into a JSONArray
