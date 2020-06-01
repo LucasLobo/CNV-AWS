@@ -142,7 +142,8 @@ public class AutoScaler {
 		}
 
 		for (String instanceId : finishedGracePeriodInstances) {
-			Instance instance = startingInstances.get(instanceId);
+			Instance instance = new Instance();
+			instance = instance.withInstanceId(instanceId);
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
 			readyInstances.put(instanceId, instance);
