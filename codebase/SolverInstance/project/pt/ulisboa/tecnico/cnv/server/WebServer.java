@@ -46,7 +46,7 @@ import java.text.SimpleDateFormat;
 
 public class WebServer {
 
-  public static String LB_port = "80";
+  public static String LB_port = "8000";
   static AmazonDynamoDB dynamoDB;
   static String tableName = "request-cost-table";
 
@@ -162,7 +162,7 @@ public class WebServer {
           } else if (splitParam[0].equals("un")) {
             un = Integer.parseInt(splitParam[1]);
           }
-        }  
+        }
       }
 
       final long request_id = temp_req_id;
@@ -234,12 +234,12 @@ public class WebServer {
       try {
         URL myUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
-  
+
         con.setRequestMethod("POST");
         con.setRequestProperty("User-Agent", "Java client");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setDoOutput(true);
-  
+
         DataOutputStream out = new DataOutputStream(con.getOutputStream());
         out.flush();
         out.close();
@@ -248,7 +248,7 @@ public class WebServer {
       } catch (Exception e) {
         System.out.println(e);
       }
-      
+
     }
   }
 }

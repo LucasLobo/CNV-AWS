@@ -54,8 +54,8 @@ public class AutoScaler {
 	static final int GRACE_PERIOD = 30 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
-	static final String SOLVER_IMAGE_ID = "ami-0b8cc586bf5eab94f";
-	static final String KEY_NAME = "CNV-aws";
+	static final String SOLVER_IMAGE_ID = "ami-06936937634fbcbe6";
+	static final String KEY_NAME = "project-final";
 	static final String SECURITY_GROUP_NAME = "CNV-Vanilla";
 
 	private static Map<String, Integer> remaningGracePeriodInstance = new HashMap<>();
@@ -109,7 +109,7 @@ public class AutoScaler {
 								.withMaxCount(1)
 								.withKeyName(KEY_NAME)
 								.withSecurityGroups(SECURITY_GROUP_NAME);
-	
+
 			RunInstancesResult runInstancesResult = ec2.runInstances(runInstancesRequest);
 			Instance instance = runInstancesResult.getReservation().getInstances().get(0);
 			String instanceId = instance.getInstanceId();
@@ -145,7 +145,7 @@ public class AutoScaler {
 			Instance instance = startingInstances.get(instanceId);
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
-			readyInstances.put(instanceId, instance);	
+			readyInstances.put(instanceId, instance);
 		}
 	}
 
@@ -182,8 +182,8 @@ public class AutoScaler {
 					hasRequests.put(instance.getInstanceId(), false);
 				}
 			}
-		}		
-		
+		}
+
 		try {
 			while (true) {
 				try {
@@ -276,7 +276,7 @@ public class AutoScaler {
 							}
 						}
 					}
-					
+
 					if (toStart) {
 						launchInstance();
 					} else if (toShutDown) {

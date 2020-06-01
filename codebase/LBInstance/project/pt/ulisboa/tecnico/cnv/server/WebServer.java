@@ -90,8 +90,8 @@ public class WebServer {
 	static AtomicLong lastSavedRequestId = new AtomicLong();
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
-	static final String LB_Port = "8000";
-	static final String LB_PUBLIC_DNS = "";
+	static final String LB_Port = "80";
+	static final String LB_PUBLIC_DNS = "ec2-54-87-15-41.compute-1.amazonaws.com";
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
@@ -100,12 +100,13 @@ public class WebServer {
 
 	public static void main(final String[] args) throws Exception {
 
+		System.out.println("test");
 		startAutoScaler();
 		createMSS();
 		init();
 		updateEstimators();
 
-		final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+		final HttpServer server = HttpServer.create(new InetSocketAddress(LB_Port), 0);
 
 		server.createContext("/sudoku", new SudokuHandler());
 		server.createContext("/update", new ProgressChecksHandler());
@@ -327,7 +328,7 @@ public class WebServer {
 				chosen_instance = instance;
 			}
 		}
-		return chosen_instance;	
+		return chosen_instance;
 	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
@@ -496,13 +497,11 @@ public class WebServer {
 			System.out.println("Estimated cost: " + estimatedCost);
 
 			try {
-				Set<Instance> instances = AutoScaler.getReadyInstances().values();
+				HashMap<String, Instance> instances = AutoScaler.getReadyInstances();
 
-				System.out.println("You have " + instances.size() + " Amazon EC2 instance(s) running.");
-				
-				Instance chosen_instance = choose_best_instance(instances);
-				
-				AutoScaler.setHasRequests(instance.getInstanceId(), true);
+				Instance chosen_instance = choose_best_instance(instances.values());
+
+				AutoScaler.setHasRequests(chosen_instance.getInstanceId(), true);
 
                 // TODO
                 // Saves information about the request in a global structure
@@ -549,7 +548,7 @@ public class WebServer {
                 instanceRequests.getQueries().remove((String) query);
                 instanceRequests.getRequestIds().remove((long) requestId);
 				instanceRequests.getBodies().remove((String) body);
-				
+
 				boolean hasRequests = false;
 				for (InstanceRequest request: instanceRequests){
 					if(request.getInstanceId() == instance.getInstanceId()){
