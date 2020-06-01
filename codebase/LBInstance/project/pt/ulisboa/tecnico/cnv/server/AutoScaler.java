@@ -14,6 +14,7 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
@@ -141,9 +142,15 @@ public class AutoScaler {
 			}
 		}
 
-		for (String instanceId : finishedGracePeriodInstances) {
-			Instance instance = new Instance();
-			instance = instance.withInstanceId(instanceId);
+		DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+		describeInstancesRequest.setInstanceIds(finishedGracePeriodInstances);
+		DescribeInstancesResult describeInstancesResult = ec2.describeInstances();
+
+		
+		for (int i = 0; i < finishedGracePeriodInstances.size(); i++) {
+			String instanceId = finishedGracePeriodInstances.get(i);
+			Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(i);
+
 			startingInstances.remove(instanceId);
 			remaningGracePeriodInstance.remove(instanceId);
 			readyInstances.put(instanceId, instance);
