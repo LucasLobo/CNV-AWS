@@ -329,7 +329,9 @@ public class WebServer {
 				chosenInstanceLoad = currentInstanceLoad;
 				chosenInstance = instance;
 			}
+			System.out.println(instance.getInstanceId() + " : " + currentInstanceLoad);
 		}
+		System.out.println("chosen: " + chosenInstance.getInstanceId());
 		return chosenInstance;
 	}
 

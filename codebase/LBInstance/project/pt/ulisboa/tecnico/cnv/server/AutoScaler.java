@@ -45,7 +45,7 @@ public class AutoScaler {
 
 	static final String REGION = "us-east-1";
 
-	static final int MIN_INSTANCE_COUNT = 1;
+	static final int MIN_INSTANCE_COUNT = 2;
 	static final int MAX_INSTANCE_COUNT = 10;
 
 	static final double MIN_CPU_VALUE = 20;
