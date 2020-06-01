@@ -533,6 +533,8 @@ public class WebServer {
 				String url = "http://" + chosenInstance.getPublicDnsName() + ":" + instancePort + "/sudoku?" + query
 						+ requestIdQuery;
 
+				System.out.println(">>>" + url);
+
 				byte[] postData = newArgs.get(11).getBytes(StandardCharsets.UTF_8);
 				URL myurl = new URL(url);
 

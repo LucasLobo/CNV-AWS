@@ -193,13 +193,6 @@ public class AutoScaler {
 					System.out.println("You have " + startingInstances.size() + " solver instance(s) being launched.");
 					System.out.println("You have " + instancesToShutDown.size() + " solver instance(s) waiting to shut down.");
 
-
-					System.out.println("gracePeriod:" + remaningGracePeriodInstance);
-					System.out.println("startingInstances:" + startingInstances.keySet());
-					System.out.println("readyInstances:" + readyInstances.keySet());
-					System.out.println("hasRequests: " + hasRequests);
-					System.out.println("toShutDown: " + instancesToShutDown.keySet());
-
 					if ((readyInstances.size() + startingInstances.size()) < MIN_INSTANCE_COUNT) {
 						launchInstance();
 						continue;
