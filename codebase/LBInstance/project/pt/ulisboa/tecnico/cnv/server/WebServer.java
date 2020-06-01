@@ -97,7 +97,9 @@ public class WebServer {
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
 	static HashMap<Long, String> requestSolver = new HashMap<>();
 
-	// static ArrayList<InstanceRequest> instanceRequests = new ArrayList<>();
+	static HashMap<String, Set<Long>> instanceRequests = new HashMap();
+
+	//static ArrayList<InstanceRequest> instanceRequests = new ArrayList<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -307,30 +309,24 @@ public class WebServer {
 	// }
 
     private static Instance chooseBestInstance(Set<Instance> instances) {
-		int highest_load = Integer.MAX_VALUE;
-		Instance chosenInstance;
+		int chosenInstanceLoad = Integer.MAX_VALUE;
+		Instance chosenInstance = null;
 		for (Instance instance : instances) {
-			int instance_load = 0;
-			return instance;
-			// for (InstanceRequest request:instanceRequests){
-			// 	if(request.getInstanceId() == instance.getInstanceId()){
-			// 		List<Long> requests = request.getRequestIds();
-			// 	}
-
-			// }
-			// for (Long request_id:requests){
-			// 	int estimated_cost = requestCostEstimation.get(request_id);
-			// 	int methods = requestMethodProgress.get(request_id);
-			// 	String solver = requestSolver.get(request_id);
-			// 	int request_load = estimated_cost - estimateCostByMethodNumber(solver, methods);
-			// 	instance_load += request_load;
-			// }
-			// if (instance_load < highest_load) {
-			// 	highest_load = instance_load;
-			// 	chosenInstance = instance;
-			// }
+			int currentInstanceLoad = 0;
+			Set<Long> requests = instanceRequests.get(instance.getInstanceId());
+			for (Long request_id: requests){
+				int estimated_cost = requestCostEstimation.get(request_id);
+				int methods = requestMethodProgress.get(request_id);
+				String solver = requestSolver.get(request_id);
+				int request_load = estimated_cost - estimateCostByMethodNumber(solver, methods);
+				currentInstanceLoad += request_load;
+			}
+			if (currentInstanceLoad < chosenInstanceLoad) {
+				chosenInstanceLoad = currentInstanceLoad;
+				chosenInstance = instance;
+			}
 		}
-		return null;
+		return chosenInstance;
 	}
 
 	private static Integer estimateRequestCost(String solver, Integer size, Integer un) {
@@ -503,6 +499,13 @@ public class WebServer {
 
 				Instance chosenInstance = chooseBestInstance(new HashSet<>(instances.values()));
 
+				Set<Long> requests = instanceRequests.get(chosenInstance.getInstanceId());
+				if (requests == null) {
+					requests = new HashSet<Long>();
+					instanceRequests.put(chosenInstance.getInstanceId(), requests);
+				}
+
+				requests.add(requestId);
 				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), true);
 
                 // TODO
@@ -551,14 +554,7 @@ public class WebServer {
                 // instanceRequests.getRequestIds().remove((long) requestId);
 				// instanceRequests.getBodies().remove((String) body);
 
-				// boolean hasRequests = false;
-				// for (InstanceRequest request: instanceRequests){
-				// 	if(request.getInstanceId() == instance.getInstanceId()){
-				// 		hasRequests = true;
-				// 	}
-				// }
-
-				//AutoScaler.setHasRequests(chosenInstance.getInstanceId(), false);
+				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), requests.size() != 0);
 
                 // Turn String content into a JSONArray
                 String s = content.toString();
