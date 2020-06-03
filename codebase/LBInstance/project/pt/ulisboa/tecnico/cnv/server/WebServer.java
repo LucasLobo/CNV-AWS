@@ -18,6 +18,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
@@ -117,18 +118,18 @@ public class WebServer {
 		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
 
-		// new Thread(new Runnable() {
-		// @Override
-		// public void run() {
-		// try {
-		// while (true) {
-		// Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
-		// sendHealthChecks();
-		// }
-		// } catch (InterruptedException e) {
-		// }
-		// }
-		// }).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
+						sendHealthChecks();
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		}).start();
 
 		System.out.println(server.getAddress().toString());
 	}
@@ -222,60 +223,64 @@ public class WebServer {
 		return buf.toString();
 	}
 
-	// private static void sendHealthChecks(){
-	// ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
-	// ArrayList<String> deadInstances = new ArrayList<>();
+	private static void sendHealthChecks(){
+		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
+		ArrayList<String> deadInstances = new ArrayList<>();
 
-	// for (Map.Entry<String, Instance> entry :
-	// AutoScaler.getReadyInstances().entrySet()) {
-	// Instance instance = entry.getValue();
-	// aliveInstances.add(instance);
-	// }
+		for (Map.Entry<String, Instance> entry : AutoScaler.getReadyInstances().entrySet()) {
+			Instance instance = entry.getValue();
+			aliveInstances.add(instance);
+		}
 
-	// for(Instance instance : aliveInstances){
-	// String url = "http://" + instance.getPublicDnsName() + ":" + instancePort +
-	// "/test"; //TODO
-	// // Prepare sending healthCheck
-	// try {
-	// URL myUrl = new URL(url);
-	// //Sending healthCheck
-	// int i = 0;
-	// while(i < 3){
-	// HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+		for(Instance instance : aliveInstances){
+			String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test"; //TODO
+			// Prepare sending healthCheck
+			try {
+				URL myUrl = new URL(url);
+				//Sending healthCheck
+				int i = 0;
+				while(i < 3){
+					try {
+						HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
 
-	// con.setRequestMethod("POST");
-	// con.setRequestProperty("User-Agent", "Java client");
-	// con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-	// con.setDoOutput(true);
+						con.setRequestMethod("POST");
+						con.setRequestProperty("User-Agent", "Java client");
+						con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+						con.setDoOutput(true);
 
-	// DataOutputStream out = new DataOutputStream(con.getOutputStream());
-	// out.flush();
-	// out.close();
+						DataOutputStream out = new DataOutputStream(con.getOutputStream());
+						out.flush();
+						out.close();
 
-	// // Receive response from Solver Instance
-	// if(con.getResponseCode() == 200){ //UP
-	// con.disconnect();
-	// break;
-	// }
-	// i++;
-	// con.disconnect();
-	// }
+						// Receive response from Solver Instance
+						if(con.getResponseCode() == 200){ //UP
+							System.out.println("ALIVE");
+							con.disconnect();
+							break;
+						}
+						i++;
+						con.disconnect();
+					}catch(ConnectException e){
+						i++;
+					}
+				}
 
-	// if(i == 3){
-	// AutoScaler.reportDead(instance.getInstanceId());
-	// aliveInstances.remove(instance);
-	// deadInstances.add(instance.getInstanceId());
-	// }
+				if(i == 3){
+					System.out.println("DEAD");
+					AutoScaler.reportDead(instance.getInstanceId());
+					deadInstances.add(instance.getInstanceId());
+				}
 
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// }
-	// }
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+	}
 
-	// for(String instance : deadInstances){
-	// removeRequests(instance.getInstanceId());
-	// }
-	// }
+		// for(String instance : deadInstances){
+		// 	removeRequests(instance);
+		// }
+
+	}
 
 	// private static void removeRequests(String instanceId){
 	// InstanceRequest instanceRequest = instanceRequests.get(instanceId);
