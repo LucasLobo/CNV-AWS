@@ -108,6 +108,7 @@ public class AutoScaler {
 								.withInstanceType("t2.micro")
 								.withMinCount(1)
 								.withMaxCount(1)
+								.withMonitoring(true)
 								.withKeyName(KEY_NAME)
 								.withSecurityGroups(SECURITY_GROUP_NAME);
 
