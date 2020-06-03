@@ -91,7 +91,7 @@ public class WebServer {
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
 	static final int LB_Port = 8000;
-	static final String LB_PUBLIC_DNS = "ec2-54-87-15-41.compute-1.amazonaws.com";
+	static final String LB_PUBLIC_DNS = "ec2-54-167-124-244.compute-1.amazonaws.com";
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost

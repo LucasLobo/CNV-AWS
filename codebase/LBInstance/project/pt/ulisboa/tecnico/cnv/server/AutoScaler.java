@@ -55,7 +55,7 @@ public class AutoScaler {
 	static final int GRACE_PERIOD = 60 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
-	static final String SOLVER_IMAGE_ID = "ami-0274e8a8391c43714";
+	static final String SOLVER_IMAGE_ID = "ami-0db0d290122bf96ae";
 	static final String KEY_NAME = "project-final";
 	static final String SECURITY_GROUP_NAME = "CNV-Vanilla";
 
