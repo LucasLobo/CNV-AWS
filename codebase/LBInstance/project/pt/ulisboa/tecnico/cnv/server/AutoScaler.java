@@ -45,7 +45,7 @@ public class AutoScaler {
 
 	static final String REGION = "us-east-1";
 
-	static final int MIN_INSTANCE_COUNT = 2;
+	static final int MIN_INSTANCE_COUNT = 1;
 	static final int MAX_INSTANCE_COUNT = 10;
 
 	static final double MIN_CPU_VALUE = 20;
@@ -225,13 +225,13 @@ public class AutoScaler {
 						instanceDimension.setValue(instanceId);
 
 
-						Date startDate = new Date(new Date().getTime() - 1000 * 60 * 10);
+						Date startDate = new Date(new Date().getTime() - 1000 * CPU_USAGE_TIME_PERIOD_SECONDS * 10);
 						Date endDate = new Date();
 						GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
 								.withStartTime(startDate)
 								.withEndTime(endDate)
 								.withNamespace("AWS/EC2")
-								.withPeriod(1)
+								.withPeriod(CPU_USAGE_TIME_PERIOD_SECONDS)
 								.withMetricName("CPUUtilization")
 								.withStatistics("Average")
 								.withDimensions(instanceDimension);
