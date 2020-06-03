@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorDLX;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.EstimatorCP;
 import pt.ulisboa.tecnico.cnv.estimatecomplexity.LinearRegression;
 import pt.ulisboa.tecnico.cnv.server.AutoScaler;
+import pt.ulisboa.tecnico.cnv.server.InstanceRequest;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -18,6 +19,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
@@ -91,15 +93,13 @@ public class WebServer {
 	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
 	static final String instancePort = "8000";
 	static final int LB_Port = 8000;
-	static final String LB_PUBLIC_DNS = "ec2-54-87-15-41.compute-1.amazonaws.com";
+	static final String LB_PUBLIC_DNS = "ec2-3-88-186-102.compute-1.amazonaws.com";
 
 	static HashMap<Long, Integer> requestCostEstimation = new HashMap<>();
 	static HashMap<Long, Integer> requestMethodProgress = new HashMap<>(); // needs to be converted to cost
 	static HashMap<Long, String> requestSolver = new HashMap<>();
 
-	static HashMap<String, Set<Long>> instanceRequests = new HashMap();
-
-	// static ArrayList<InstanceRequest> instanceRequests = new ArrayList<>();
+  static ArrayList<InstanceRequest> instanceRequests = new ArrayList<>();
 
 	public static void main(final String[] args) throws Exception {
 
@@ -117,18 +117,19 @@ public class WebServer {
 		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
 
-		// new Thread(new Runnable() {
-		// @Override
-		// public void run() {
-		// try {
-		// while (true) {
-		// Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
-		// sendHealthChecks();
-		// }
-		// } catch (InterruptedException e) {
-		// }
-		// }
-		// }).start();
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
+						sendHealthChecks();
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		}).start();
 
 		System.out.println(server.getAddress().toString());
 	}
@@ -222,93 +223,105 @@ public class WebServer {
 		return buf.toString();
 	}
 
-	// private static void sendHealthChecks(){
-	// ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
-	// ArrayList<String> deadInstances = new ArrayList<>();
+	private static void sendHealthChecks(){
+		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
+		ArrayList<String> deadInstances = new ArrayList<>();
 
-	// for (Map.Entry<String, Instance> entry :
-	// AutoScaler.getReadyInstances().entrySet()) {
-	// Instance instance = entry.getValue();
-	// aliveInstances.add(instance);
-	// }
+		for (Map.Entry<String, Instance> entry : AutoScaler.getReadyInstances().entrySet()) {
+			Instance instance = entry.getValue();
+			aliveInstances.add(instance);
+		}
 
-	// for(Instance instance : aliveInstances){
-	// String url = "http://" + instance.getPublicDnsName() + ":" + instancePort +
-	// "/test"; //TODO
-	// // Prepare sending healthCheck
-	// try {
-	// URL myUrl = new URL(url);
-	// //Sending healthCheck
-	// int i = 0;
-	// while(i < 3){
-	// HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+		for(Instance instance : aliveInstances){
+			String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test"; //TODO
+			// Prepare sending healthCheck
+			try {
+				URL myUrl = new URL(url);
+				//Sending healthCheck
+				int i = 0;
+				while(i < 3){
+					try {
+						HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
 
-	// con.setRequestMethod("POST");
-	// con.setRequestProperty("User-Agent", "Java client");
-	// con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-	// con.setDoOutput(true);
+						con.setRequestMethod("POST");
+						con.setRequestProperty("User-Agent", "Java client");
+						con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+						con.setDoOutput(true);
 
-	// DataOutputStream out = new DataOutputStream(con.getOutputStream());
-	// out.flush();
-	// out.close();
+						DataOutputStream out = new DataOutputStream(con.getOutputStream());
+						out.flush();
+						out.close();
 
-	// // Receive response from Solver Instance
-	// if(con.getResponseCode() == 200){ //UP
-	// con.disconnect();
-	// break;
-	// }
-	// i++;
-	// con.disconnect();
-	// }
+						// Receive response from Solver Instance
+						if(con.getResponseCode() == 200){ //UP
+							System.out.println("ALIVE");
+							con.disconnect();
+							break;
+						}
+						i++;
+						con.disconnect();
+					}catch(ConnectException e){
+						i++;
+					}
+				}
 
-	// if(i == 3){
-	// AutoScaler.reportDead(instance.getInstanceId());
-	// aliveInstances.remove(instance);
-	// deadInstances.add(instance.getInstanceId());
-	// }
+				if(i == 3){
+					System.out.println("DEAD");
+					AutoScaler.reportDead(instance.getInstanceId());
+					deadInstances.add(instance.getInstanceId());
+				}
 
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// }
-	// }
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+	}
 
-	// for(String instance : deadInstances){
-	// removeRequests(instance.getInstanceId());
-	// }
-	// }
+		for(String instance : deadInstances){
+			removeRequests(instance);
+		}
 
-	// private static void removeRequests(String instanceId){
-	// InstanceRequest instanceRequest = instanceRequests.get(instanceId);
-	// for(int i = 0; i!= instanceRequest.getRequestIds().size(); i++){
-	// sendRequest(instanceRequest.getQueries().get(i),
-	// instanceRequest.getBodies().get(i)); // Attribute an instance this request
-	// }
-	// instanceRequest.getQueries().clear();
-	// instanceRequest.getRequestIds().clear();
-	// instanceRequest.getBodies().clear();
-	// }
+	}
 
-	// private static void sendRequest(String query, String body){
-	// try{
-	// String url = "http://" + LB_PUBLIC_DNS + ":" + LB_port + "/sudoku?" + query;
-	// URL myUrl = new URL(url);
-	// byte[] postData = body.getBytes(StandardCharsets.UTF_8);
+	private static void removeRequests(String instanceId){
+		InstanceRequest instanceRequest = instanceExists(instanceId);
+		for(int i = 0; i!= instanceRequest.getRequestIds().size(); i++){
+			sendRequest(instanceRequest.getQueries().get(i),
+			instanceRequest.getBodies().get(i));
+		}
+		instanceRequest.getQueries().clear();
+		instanceRequest.getRequestIds().clear();
+		instanceRequest.getBodies().clear();
+	}
 
-	// HttpURLConnection con = (HttpURLConnection) myurl.openConnection();
-	// con.setDoOutput(true);
-	// con.setRequestMethod("POST");
-	// con.setRequestProperty("User-Agent", "Java client");
-	// con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
-	// DataOutputStream out = new DataOutputStream(con.getOutputStream());
-	// out.write(postData);
-	// out.flush();
-	// out.close();
-	// } catch (IOException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
+	private static void sendRequest(String query, String body){
+		try{
+			String url = "http://" + LB_PUBLIC_DNS + ":8000" + "/sudoku?" + query;
+			URL myUrl = new URL(url);
+			byte[] postData = body.getBytes(StandardCharsets.UTF_8);
 
-	// }
+			HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+			con.setDoOutput(true);
+			con.setRequestMethod("POST");
+			con.setRequestProperty("User-Agent", "Java client");
+			con.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
+			DataOutputStream out = new DataOutputStream(con.getOutputStream());
+			out.write(postData);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public static InstanceRequest instanceExists(String instanceId){
+		for(InstanceRequest instanceRequest : instanceRequests){
+			if(instanceRequest.getInstanceId().equals(instanceId))
+			return instanceRequest;
+		}
+		return null;
+	}
 
 	private static Instance chooseBestInstance(Set<Instance> instances) {
 		int chosenInstanceLoad = Integer.MAX_VALUE;
@@ -316,7 +329,12 @@ public class WebServer {
 
 		for (Instance instance : instances) {
 			int currentInstanceLoad = 0;
-			Set<Long> requests = instanceRequests.get(instance.getInstanceId());
+			InstanceRequest instanceRequest = instanceExists(instance.getInstanceId());
+			if(instanceRequest == null){
+				instanceRequest = new InstanceRequest(instance.getInstanceId());
+				instanceRequests.add(instanceRequest);
+			}
+			List<Long> requests = instanceRequest.getRequestIds();
 			for (Long request_id : requests) {
 				int estimated_cost = requestCostEstimation.get(request_id);
 				int methods = requestMethodProgress.get(request_id);
@@ -449,13 +467,7 @@ public class WebServer {
 
 	static class SudokuHandler implements HttpHandler {
 
-		// public boolean instanceExists(String instanceId){
-		// for(InstanceRequest instanceRequest : instanceRequests){
-		// if(instanceRequest.getInstanceId().equals(instanceId))
-		// return true;
-		// }
-		// return false;
-		// }
+
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -500,21 +512,15 @@ public class WebServer {
 			requestSolver.put(requestId, solver);
 			System.out.println("Estimated cost: " + estimatedCost);
 
-			try {
+			try{
 				Map<String, Instance> instances = AutoScaler.getReadyInstances();
 
-				for (Map.Entry<String, Instance> instance : instances.entrySet()) {
-					Set<Long> requests = instanceRequests.get(instance.getKey());
-					if (requests == null) {
-						requests = new HashSet<Long>();
-						instanceRequests.put(instance.getKey(), requests);
-					}
-				}
-
 				Instance chosenInstance = chooseBestInstance(new HashSet<>(instances.values()));
-				Set<Long> requests = instanceRequests.get(chosenInstance.getInstanceId());
-				requests.add(requestId);
+				InstanceRequest instanceReq = instanceExists(chosenInstance.getInstanceId());
 				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), true);
+				instanceReq.getQueries().add((String) query);
+				instanceReq.getRequestIds().add((long) requestId);
+				instanceReq.getBodies().add((String) body);
 
 				// TODO
 				// Saves information about the request in a global structure
@@ -524,12 +530,7 @@ public class WebServer {
 				// next line is for testing purposes, insert public DNS of the solver instance
 				// you want to test
 
-				// if(!instanceExists(name)){
-				// InstanceRequest instanceRequest = new InstanceRequest(name);
-				// }
-				// instanceRequests.getQueries().add((String) query);
-				// instanceRequests.getRequestIds().add((long) requestId);
-				// instanceRequests.getBodies().add((String) body);
+
 
 				String url = "http://" + chosenInstance.getPublicDnsName() + ":" + instancePort + "/sudoku?" + query
 						+ requestIdQuery;
@@ -560,12 +561,11 @@ public class WebServer {
 				in.close();
 				con.disconnect();
 
-				// instanceRequests.getQueries().remove((String) query);
-				// instanceRequests.getRequestIds().remove((long) requestId);
-				// instanceRequests.getBodies().remove((String) body);
+				instanceReq.getQueries().remove((String) query);
+				instanceReq.getRequestIds().remove((long) requestId);
+				instanceReq.getBodies().remove((String) body);
 
-				requests.remove(requestId);
-				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), requests.size() != 0);
+				AutoScaler.setHasRequests(chosenInstance.getInstanceId(), instanceReq.getRequestIds().size() != 0);
 
 				// Turn String content into a JSONArray
 				String s = content.toString();
@@ -621,6 +621,8 @@ public class WebServer {
 			requestCostEstimation.remove(requestId);
 			requestSolver.remove(requestId);
 			requestMethodProgress.remove(requestId);
+
 		}
+
 	}
 }

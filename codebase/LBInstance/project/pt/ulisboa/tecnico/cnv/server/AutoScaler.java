@@ -55,9 +55,9 @@ public class AutoScaler {
 	static final int GRACE_PERIOD = 60 * 1000;
 	static final int CPU_USAGE_TIME_PERIOD_SECONDS = 60;
 
-	static final String SOLVER_IMAGE_ID = "ami-0274e8a8391c43714";
-	static final String KEY_NAME = "project-final";
-	static final String SECURITY_GROUP_NAME = "CNV-Vanilla";
+	static final String SOLVER_IMAGE_ID = "ami-0a8dbb470749f87ea";
+	static final String KEY_NAME = "cnv-project-edu";
+	static final String SECURITY_GROUP_NAME = "cnv-project";
 
 	private static Map<String, Integer> remaningGracePeriodInstance = new HashMap<>();
 	private static Map<String, Instance> startingInstances = new HashMap<>();
