@@ -18,15 +18,20 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.Executors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,7 +93,7 @@ public class WebServer {
 	static EstimatorCP estimatorCP = new EstimatorCP();
 	static AtomicLong requestIds = new AtomicLong(1L);
 	static AtomicLong lastSavedRequestId = new AtomicLong();
-	static final int HEALTH_CHECK_TIME_INTERVAL = 30000;
+	static final int HEALTH_CHECK_TIME_INTERVAL = 10000;
 	static final String instancePort = "8000";
 	static final int LB_Port = 8000;
 	static final String LB_PUBLIC_DNS = "ec2-54-167-124-244.compute-1.amazonaws.com";
@@ -107,6 +112,7 @@ public class WebServer {
 		createMSS();
 		init();
 		updateEstimators();
+		healthChecks();
 
 		final HttpServer server = HttpServer.create(new InetSocketAddress(LB_Port), 0);
 
@@ -117,20 +123,22 @@ public class WebServer {
 		server.setExecutor(Executors.newCachedThreadPool());
 		server.start();
 
-		// new Thread(new Runnable() {
-		// @Override
-		// public void run() {
-		// try {
-		// while (true) {
-		// Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
-		// sendHealthChecks();
-		// }
-		// } catch (InterruptedException e) {
-		// }
-		// }
-		// }).start();
-
 		System.out.println(server.getAddress().toString());
+	}
+
+	private static void healthChecks() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Thread.sleep(HEALTH_CHECK_TIME_INTERVAL);
+						sendHealthChecks();
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		}).start();
 	}
 
 	private static void startAutoScaler() {
@@ -222,60 +230,71 @@ public class WebServer {
 		return buf.toString();
 	}
 
-	// private static void sendHealthChecks(){
-	// ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
-	// ArrayList<String> deadInstances = new ArrayList<>();
+	private static void sendHealthChecks() {
+		ArrayList<Instance> aliveInstances = new ArrayList<>(); // Get from AS
+		// ArrayList<String> deadInstances = new ArrayList<>();
 
-	// for (Map.Entry<String, Instance> entry :
-	// AutoScaler.getReadyInstances().entrySet()) {
-	// Instance instance = entry.getValue();
-	// aliveInstances.add(instance);
-	// }
+		for (Map.Entry<String, Instance> entry : AutoScaler.getReadyInstances().entrySet()) {
+			Instance instance = entry.getValue();
+			aliveInstances.add(instance);
+		}
 
-	// for(Instance instance : aliveInstances){
-	// String url = "http://" + instance.getPublicDnsName() + ":" + instancePort +
-	// "/test"; //TODO
-	// // Prepare sending healthCheck
-	// try {
-	// URL myUrl = new URL(url);
-	// //Sending healthCheck
-	// int i = 0;
-	// while(i < 3){
-	// HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+		for(final Instance instance : aliveInstances) {
+			// Prepare sending healthCheck
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						String url = "http://" + instance.getPublicDnsName() + ":" + instancePort + "/test";
 
-	// con.setRequestMethod("POST");
-	// con.setRequestProperty("User-Agent", "Java client");
-	// con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-	// con.setDoOutput(true);
+						URL myUrl = new URL(url);
+						//Sending healthCheck
+						int hardTimeout = 4; // seconds
 
-	// DataOutputStream out = new DataOutputStream(con.getOutputStream());
-	// out.flush();
-	// out.close();
+						final HttpURLConnection con = (HttpURLConnection) myUrl.openConnection();
+						con.setRequestMethod("POST");
+						con.setRequestProperty("User-Agent", "Java client");
+						con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+						con.setDoOutput(true);
 
-	// // Receive response from Solver Instance
-	// if(con.getResponseCode() == 200){ //UP
-	// con.disconnect();
-	// break;
-	// }
-	// i++;
-	// con.disconnect();
-	// }
+						final AtomicBoolean open = new AtomicBoolean(true);
 
-	// if(i == 3){
-	// AutoScaler.reportDead(instance.getInstanceId());
-	// aliveInstances.remove(instance);
-	// deadInstances.add(instance.getInstanceId());
-	// }
+						TimerTask task = new TimerTask() {
+							@Override
+							public void run() {
+								if (open.get()) {
+									System.out.println("Unsuccessful");
+									AutoScaler.reportDead(instance.getInstanceId());
+									con.disconnect();
+								}
+							}
+						};
+						new Timer(true).schedule(task, hardTimeout * 1000);
 
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// }
-	// }
+						DataOutputStream out = new DataOutputStream(con.getOutputStream());
+						out.flush();
+						out.close();
 
-	// for(String instance : deadInstances){
-	// removeRequests(instance.getInstanceId());
-	// }
-	// }
+						// Receive response from Solver Instance
+						if(con.getResponseCode() == 200){ //UP
+							con.disconnect();
+							System.out.println("Alive");
+							open.set(false);
+						}
+
+					} catch (ConnectException e) {
+
+					} catch (Exception e) {
+						System.out.println(e);
+					}
+				}
+			}).start();
+		}
+
+		// for(String instance : deadInstances){
+		// 	removeRequests(instance.getInstanceId());
+		// }
+	}
 
 	// private static void removeRequests(String instanceId){
 	// InstanceRequest instanceRequest = instanceRequests.get(instanceId);
@@ -591,9 +610,6 @@ public class WebServer {
 					}
 					solution.put(line);
 				}
-
-				System.out.println((requestMethodProgress.get(requestId)) + ":"
-						+ estimateCostByMethodNumber(solver, requestMethodProgress.get(requestId)));
 
 				// Send response to browser
 				final Headers hdrs = t.getResponseHeaders();

@@ -225,7 +225,7 @@ public class AutoScaler {
 						instanceDimension.setValue(instanceId);
 
 
-						Date startDate = new Date(new Date().getTime() - 1000 * CPU_USAGE_TIME_PERIOD_SECONDS * 10);
+						Date startDate = new Date(new Date().getTime() - Math.round(1000 * CPU_USAGE_TIME_PERIOD_SECONDS * 3.9));
 						Date endDate = new Date();
 						GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
 								.withStartTime(startDate)
@@ -242,11 +242,15 @@ public class AutoScaler {
 						List<Datapoint> datapoints = getMetricStatisticsResult.getDatapoints();
 						Integer size = datapoints.size();
 
+						System.out.println(instanceId + " CPU Usages:");
 						// CASE WHERE MACHINE IS NOT ALIVE
-
-						if (size == 0) continue; // means the instance was just created
+						if (size == 0) {
+							System.out.println("None");
+							continue; // means the instance was just created
+						}
 						else if (size == 1) {
 							Double avg = datapoints.get(0).getAverage();
+							System.out.println(avg);
 							if (avg > MAX_CPU_VALUE) {
 								toStart = true;
 								break;
@@ -260,6 +264,8 @@ public class AutoScaler {
 						} else if (size == 2) {
 							Double avg1 = datapoints.get(0).getAverage();
 							Double avg2 = datapoints.get(1).getAverage();
+							System.out.println(avg1);
+							System.out.println(avg2);
 							if (avg1 > MAX_CPU_VALUE && avg2 > MAX_CPU_VALUE) {
 								toStart = true;
 								break;
@@ -271,10 +277,12 @@ public class AutoScaler {
 							}
 
 						} else {
-							Double avg1 = datapoints.get(size-1).getAverage();
-							Double avg2 = datapoints.get(size-2).getAverage();
-							Double avg3 = datapoints.get(size-3).getAverage();
-
+							Double avg1 = datapoints.get(0).getAverage();
+							Double avg2 = datapoints.get(1).getAverage();
+							Double avg3 = datapoints.get(2).getAverage();
+							System.out.println(avg1);
+							System.out.println(avg2);
+							System.out.println(avg3);
 							if (avg1 > MAX_CPU_VALUE && avg2 > MAX_CPU_VALUE && avg3 > MAX_CPU_VALUE) {
 								toStart = true;
 								break;
